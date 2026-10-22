@@ -1,0 +1,74 @@
+name: Investing Agent
+
+on:
+  schedule:
+    # Elke 30 min op weekdagen, 13:00–21:30 UTC (dekt Amerikaanse beursuren in zomer- en wintertijd).
+    # De agent controleert zelf of de beurs open is (feestdagen, vroege sluiting).
+    - cron: "*/30 13-21 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "status | tick | once"
+        default: "tick"
+
+permissions:
+  contents: write   # nodig om het logboek naar de 'state'-branch te schrijven
+
+concurrency:
+  group: investing-agent
+  cancel-in-progress: false   # nooit twee runs tegelijk
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Noodstop: zet repository-variabele AGENT_STOP op 'true'
+    if: ${{ vars.AGENT_STOP != 'true' }}
+    env:
+      ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+      ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      # 'dry_run' (standaard): niets plaatsen. Zet variabele TRADING_MODE op 'paper' voor paperorders.
+      DRY_FLAG: ${{ vars.TRADING_MODE == 'paper' && '' || '--dry-run' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Logboek ophalen
+        run: |
+          mkdir -p data
+          if git fetch origin state --depth=1 2>/dev/null; then
+            git show origin/state:agent.db > data/agent.db || true
+          fi
+
+      - name: Tests risicoregels
+        run: python -m pytest -q
+
+      - name: Agent
+        run: |
+          CMD="${{ github.event.inputs.command || 'tick' }}"
+          if [ "$CMD" = "status" ]; then python -m agent status
+          else python -m agent "$CMD" $DRY_FLAG; fi
+
+      - name: Logboek bewaren
+        if: always()
+        run: |
+          [ -f data/agent.db ] || exit 0
+          cp data/agent.db /tmp/agent.db
+          git config user.name "investing-agent"
+          git config user.email "actions@users.noreply.github.com"
+          if git fetch origin state --depth=1 2>/dev/null; then
+            git checkout -B state origin/state
+          else
+            git checkout --orphan state && git rm -rf --quiet .
+          fi
+          cp /tmp/agent.db agent.db
+          git add agent.db
+          git commit -qm "logboek $(date -u +%FT%TZ)" || exit 0
+          git push -q origin state

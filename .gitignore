@@ -1,0 +1,7 @@
+STOP
+.env
+.venv/
+data/
+__pycache__/
+.pytest_cache/
+test_output.txt

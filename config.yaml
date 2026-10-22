@@ -1,0 +1,62 @@
+# Investing Agent — configuratie (paper trading)
+# Wijzig dit bestand, niet de code, om regels aan te passen.
+# De AI kan deze waarden NIET lezen of wijzigen.
+
+mode: paper            # enkel 'paper' wordt ondersteund in deze fase
+benchmark: SPY
+
+# Vaste lijst waaruit de AI mag kiezen (liquide US large caps + brede ETF's)
+universe:
+  - SPY
+  - QQQ
+  - IWM
+  - XLK
+  - XLV
+  - XLF
+  - XLE
+  - AAPL
+  - MSFT
+  - NVDA
+  - AMZN
+  - GOOGL
+  - META
+  - AVGO
+  - BRK.B
+  - JPM
+  - V
+  - MA
+  - UNH
+  - LLY
+  - JNJ
+  - PG
+  - KO
+  - PEP
+  - COST
+  - WMT
+  - HD
+  - XOM
+  - CVX
+  - ADBE
+
+risk:
+  max_drawdown_pct: 15        # vanaf piek: geen nieuwe aankopen meer (pauzestand)
+  max_position_pct: 10        # max gewicht per positie
+  min_cash_pct: 5             # minimale cashbuffer
+  max_orders_per_day: 10
+  min_order_usd: 100          # kleinere aanpassingen worden genegeerd
+  min_ai_confidence: 0.6      # lagere zekerheid -> geen actie
+  max_data_age_hours: 96      # ouder koersdata -> geen nieuwe orders (weekend + feestdag)
+
+schedule:
+  check_interval_min: 15      # tijdens beursuren: posities/orders controleren
+  analysis_after_open_min: 20 # dagelijkse AI-analyse X min na opening
+  news_interval_min: 60       # buiten beursuren: nieuws ophalen en bewaren
+
+ai:
+  model: gemini-3.8-flash     # controleer actuele modelnaam/quota in Google AI Studio
+  fallback_models: [gemini-3.5-flash, gemini-3.7-flash, gemini-flash-latest]
+  temperature: 0.2
+  max_calls_per_day: 12        # kostenrem (incl. nieuwe pogingen)
+  price_per_mtok: {input: 0.75, output: 3.75}   # gemini-3.8-flash t/m 2026; vanaf 2027: 1.50 / 7.50
+  news_per_symbol: 3
+  news_lookback_hours: 72
