@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 import requests
-from alpaca.data.enums import DataFeed
+from alpaca.data.enums import Adjustment, DataFeed
 from alpaca.data.historical import CryptoHistoricalDataClient, StockHistoricalDataClient
 from alpaca.data.requests import CryptoBarsRequest, StockBarsRequest
 from alpaca.data.timeframe import TimeFrame
@@ -64,7 +64,8 @@ class MarketData:
         if symbols:
             req = StockBarsRequest(
                 symbol_or_symbols=symbols, timeframe=TimeFrame.Day,
-                start=datetime.now(timezone.utc) - timedelta(days=420), feed=DataFeed.IEX)
+                start=datetime.now(timezone.utc) - timedelta(days=420), feed=DataFeed.IEX,
+                adjustment=Adjustment.ALL)   # gecorrigeerd voor splitsingen en dividenden
             for sym, rows in self.client.get_stock_bars(req).data.items():
                 if rows:
                     out[sym] = build_snapshot(sym, [float(b.close) for b in rows],

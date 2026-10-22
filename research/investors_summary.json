@@ -1,0 +1,208 @@
+{
+ "copy_test": [
+  {
+   "fund": "ARK Invest (Cathie Wood)",
+   "copy": 0.3587589416324448,
+   "spy": 0.12765548257293347
+  },
+  {
+   "fund": "Situational Awareness (Leopold Aschenbrenner)",
+   "copy": 0.15353545119556644,
+   "spy": 0.12765548257293347
+  },
+  {
+   "fund": "Altimeter (Brad Gerstner)",
+   "copy": -0.04089464372041307,
+   "spy": 0.11940846476928924
+  },
+  {
+   "fund": "Coatue (Philippe Laffont)",
+   "copy": 0.022744813628437832,
+   "spy": 0.11940846476928924
+  },
+  {
+   "fund": "Tiger Global (Chase Coleman)",
+   "copy": 0.04298598928536279,
+   "spy": 0.11940846476928924
+  }
+ ],
+ "consensus": [
+  {
+   "ticker": "TSM",
+   "funds": [
+    "ARK Invest",
+    "Situational Awareness",
+    "Altimeter",
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.07009210731319976
+  },
+  {
+   "ticker": "NVDA",
+   "funds": [
+    "ARK Invest",
+    "Altimeter",
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.08381885984994075
+  },
+  {
+   "ticker": "AMZN",
+   "funds": [
+    "ARK Invest",
+    "Altimeter",
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.06208335720150644
+  },
+  {
+   "ticker": "CBRS",
+   "funds": [
+    "Situational Awareness",
+    "Altimeter",
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.056474031233471465
+  },
+  {
+   "ticker": "MU",
+   "funds": [
+    "Situational Awareness",
+    "Altimeter",
+    "Coatue"
+   ],
+   "avg_weight": 0.13619664528391598
+  },
+  {
+   "ticker": "META",
+   "funds": [
+    "Altimeter",
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.0595109311564192
+  },
+  {
+   "ticker": "LRCX",
+   "funds": [
+    "Altimeter",
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.05603340926909119
+  },
+  {
+   "ticker": "SPCX",
+   "funds": [
+    "ARK Invest",
+    "Altimeter",
+    "Coatue"
+   ],
+   "avg_weight": 0.05150455214177302
+  },
+  {
+   "ticker": "AMAT",
+   "funds": [
+    "Altimeter",
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.0461445752700094
+  },
+  {
+   "ticker": "GOOGL",
+   "funds": [
+    "Altimeter",
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.0450991567691763
+  },
+  {
+   "ticker": "CRWV",
+   "funds": [
+    "ARK Invest",
+    "Situational Awareness",
+    "Altimeter"
+   ],
+   "avg_weight": 0.04011663928804602
+  },
+  {
+   "ticker": "MSFT",
+   "funds": [
+    "Altimeter",
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.03643515634613079
+  },
+  {
+   "ticker": "GEV",
+   "funds": [
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.05383764261399008
+  },
+  {
+   "ticker": "AVGO",
+   "funds": [
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.03899896672738663
+  },
+  {
+   "ticker": "AMD",
+   "funds": [
+    "ARK Invest",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.03705201155014049
+  },
+  {
+   "ticker": "INTC",
+   "funds": [
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.03169984761601895
+  },
+  {
+   "ticker": "HOOD",
+   "funds": [
+    "ARK Invest",
+    "Altimeter"
+   ],
+   "avg_weight": 0.02279031822610612
+  },
+  {
+   "ticker": "GOOG",
+   "funds": [
+    "ARK Invest",
+    "Coatue"
+   ],
+   "avg_weight": 0.016350599088407466
+  },
+  {
+   "ticker": "XYZ",
+   "funds": [
+    "ARK Invest",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.015729628282745427
+  },
+  {
+   "ticker": "RDDT",
+   "funds": [
+    "Coatue",
+    "Tiger Global"
+   ],
+   "avg_weight": 0.014941653867340178
+  }
+ ]
+}
