@@ -10,6 +10,15 @@ from alpaca.trading.requests import GetOrdersRequest, MarketOrderRequest
 PAPER_URL_FRAGMENT = "paper-api.alpaca.markets"
 
 
+def norm_symbol(sym: str, asset_class: str = "") -> str:
+    """Alpaca toont crypto-posities als 'BTCUSD'; intern gebruiken we 'BTC/USD'."""
+    if "/" in sym:
+        return sym
+    if "crypto" in str(asset_class).lower() and sym.endswith("USD"):
+        return sym[:-3] + "/USD"
+    return sym
+
+
 @dataclass
 class Position:
     symbol: str
@@ -41,12 +50,15 @@ class Broker:
                        bool(a.trading_blocked or a.account_blocked), str(a.status))
 
     def positions(self) -> dict[str, Position]:
-        return {p.symbol: Position(p.symbol, float(p.qty), float(p.market_value))
-                for p in self.client.get_all_positions()}
+        out = {}
+        for p in self.client.get_all_positions():
+            s = norm_symbol(p.symbol, getattr(p, "asset_class", ""))
+            out[s] = Position(s, float(p.qty), float(p.market_value))
+        return out
 
     def open_order_symbols(self) -> set[str]:
         orders = self.client.get_orders(GetOrdersRequest(status=QueryOrderStatus.OPEN))
-        return {o.symbol for o in orders}
+        return {norm_symbol(o.symbol, getattr(o, "asset_class", "")) for o in orders}
 
     def market_clock(self):
         return self.client.get_clock()  # .is_open, .next_open, .next_close, .timestamp
@@ -56,7 +68,8 @@ class Broker:
         req = MarketOrderRequest(
             symbol=symbol,
             side=OrderSide.BUY if side == "buy" else OrderSide.SELL,
-            time_in_force=TimeInForce.DAY,
+            # crypto aanvaardt geen DAY-orders
+            time_in_force=TimeInForce.GTC if "/" in symbol else TimeInForce.DAY,
             client_order_id=client_order_id,
             **({"notional": round(notional, 2)} if notional else {"qty": qty}),
         )

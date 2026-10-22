@@ -5,10 +5,12 @@ on:
     # Elke 30 min op weekdagen, 13:00–21:30 UTC (dekt Amerikaanse beursuren in zomer- en wintertijd).
     # De agent controleert zelf of de beurs open is (feestdagen, vroege sluiting).
     - cron: "*/30 13-21 * * 1-5"
+    # Elke 4 uur, ook 's nachts en in het weekend: crypto-uitstapcontrole (verkoopt enkel bij trendbreuk).
+    - cron: "17 */4 * * *"
   workflow_dispatch:
     inputs:
       command:
-        description: "status | tick | once"
+        description: "status | tick | once | report"
         default: "tick"
 
 permissions:
@@ -53,10 +55,10 @@ jobs:
       - name: Agent
         run: |
           CMD="${{ github.event.inputs.command || 'tick' }}"
-          case "$CMD" in status|tick|once) ;; *) echo "Onbekend commando: $CMD"; exit 1;; esac
+          case "$CMD" in status|tick|once|report) ;; *) echo "Onbekend commando: $CMD"; exit 1;; esac
           if [ "$TRADING_MODE" = "paper" ]; then FLAG=""; echo "Modus: PAPER (orders worden geplaatst)"
           else FLAG="--dry-run"; echo "Modus: DRY-RUN (niets wordt geplaatst)"; fi
-          if [ "$CMD" = "status" ]; then python -m agent status
+          if [ "$CMD" = "status" ] || [ "$CMD" = "report" ]; then python -m agent "$CMD"
           else python -m agent "$CMD" $FLAG; fi
 
       - name: Logboek bewaren

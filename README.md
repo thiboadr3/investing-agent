@@ -4,19 +4,18 @@ AI-gedreven agent die een **paper**-portefeuille bij Alpaca beheert. Geen echt g
 
 ## Hoe het werkt
 
-1. **Data** — dagkoersen (Alpaca IEX, gratis) en nieuws (Alpaca News) voor een vaste lijst van 30 symbolen in `config.yaml`.
-2. **AI (Gemini)** — krijgt koersstatistieken, huidige gewichten en nieuws, en stelt per symbool *buy / sell / hold* + doelgewicht + zekerheid + argumenten voor. Nieuws wordt als onbetrouwbare tekst behandeld.
-3. **Strategie** — zet doelgewichten om in ordervoorstellen (eerst verkopen, dan kopen).
-4. **Risicolaag** (`agent/risk.py`, zonder AI) — weigert elke order die een regel schendt:
-   - noodstop actief, accountstatus onduidelijk, markt dicht
-   - symbool niet in de lijst, al een open order, >10 orders per dag
-   - order < $100, AI-zekerheid < 0,6, koersdata te oud
-   - **kopen** geblokkeerd bij ≥ 15 % terugval vanaf de piek, positie > 10 %, cash < 5 %
-   - **verkopen** enkel van wat je bezit (geen shorts)
-5. **Broker** — plaatst uitsluitend paperorders (weigert te starten op een live-endpoint), met vaste order-ID's per dag zodat een herstart nooit dubbele orders geeft.
-6. **Logboek** — alles in `data/agent.db` (SQLite): beslissingen + argumenten, orders, weigeringen, nieuws, snapshots, fouten.
-
-Schema in `run`-modus: tijdens beursuren elke 15 min posities/orders controleren, één AI-analyse per beursdag ~20 min na de opening; buiten beursuren elk uur nieuws bewaren.
+1. **Data** — dagkoersen voor 30 aandelen/ETF's (Alpaca IEX, gratis) en crypto (BTC/USD, ETH/USD), plus nieuws (Alpaca News).
+2. **Regels** (`agent/rules.py`, zonder AI) bepalen de doelportefeuille:
+   - *Aandelen/ETF's*: enkel boven het 200-daagse gemiddelde én met positief 12-1-maandsmomentum; de sterkste 10; gewicht omgekeerd evenredig met volatiliteit, max 10 % per positie.
+   - *Crypto*: per munt enkel bij trend (boven 200d-gemiddelde en positief 3m-rendement). Beide munten in trend → 20 %, één → 10 %, geen → 0 %. Max 12 % per munt.
+   - Samen 95 % belegd, 5 % cash.
+3. **AI-filter (Gemini)** leest het nieuws en mag posities enkel **halveren of schrappen** bij een concrete rode vlag (nooit vergroten). Faalt de AI, dan worden er die dag enkel verkopen gedaan.
+4. **Risicolaag** (`agent/risk.py`) weigert elke order die een regel schendt: noodstop, accountstatus, beurs dicht (aandelen), symbool niet toegelaten, open order, max orders/dag, te kleine order, verouderde data, ≥ 15 % terugval (geen aankopen), positie- en crypto-limieten, cashbuffer, geen shorts.
+5. **Broker** — enkel paperorders, vaste order-ID's (geen dubbele orders na herstart); crypto met GTC-orders.
+6. **Buiten beursuren** (elke 4 uur, ook weekend): crypto-uitstapcontrole — verkoopt een munt als de trend breekt, koopt nooit.
+7. **Schaduwportefeuilles** (virtueel, niet verhandeld) om te vergelijken: *regels zonder AI-filter*, *50 % crypto / 50 % aandelen*, *AI volledig vrij*, *SPY kopen en houden*. Met geschatte kosten (aandelen 0,05 %, crypto 0,25 % per transactie).
+8. **Rapport** — na elke run in de GitHub Actions-samenvatting en via `python -m agent report`.
+9. **Logboek** — alles in SQLite (`agent.db`): beslissingen + redenen, AI-aanpassingen, orders, weigeringen, nieuws, snapshots, schaduwwaarden, kosten.
 
 ## Installatie (lokaal, Mac)
 
@@ -33,6 +32,7 @@ python -m pytest -q       # risicoregels testen
 ```bash
 python -m agent status                                  # rekening en posities
 python -m agent once --dry-run --ignore-market-hours    # veilige testrun, plaatst niets
+python -m agent report                                  # echte vs schaduwportefeuilles
 python -m agent once --dry-run                          # testrun tijdens beursuren
 python -m agent once                                    # één echte paper-cyclus
 python -m agent run                                     # doorlopend (server)
@@ -44,7 +44,7 @@ Logboek bekijken: `sqlite3 data/agent.db "select * from decisions order by ts de
 
 ## In de cloud: GitHub Actions
 
-`.github/workflows/agent.yml` start de agent elke 30 min op weekdagen (13:00–21:30 UTC) met `python -m agent tick`. De agent controleert zelf of de beurs open is, doet één AI-analyse per beursdag en volgt verder enkel op. Het logboek (`agent.db`) wordt na elke run bewaard op de branch `state`.
+`.github/workflows/agent.yml` start de agent elke 30 min op weekdagen (13:00–21:30 UTC) en elke 4 uur (crypto-controle) met `python -m agent tick`. De agent controleert zelf of de beurs open is, doet één AI-analyse per beursdag en volgt verder enkel op. Het logboek (`agent.db`) wordt na elke run bewaard op de branch `state`.
 
 Instellen (Settings → Secrets and variables → Actions):
 

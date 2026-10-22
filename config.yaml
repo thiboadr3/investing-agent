@@ -5,7 +5,7 @@
 mode: paper            # enkel 'paper' wordt ondersteund in deze fase
 benchmark: SPY
 
-# Vaste lijst waaruit de AI mag kiezen (liquide US large caps + brede ETF's)
+# Aandelen en ETF's (liquide US large caps + brede ETF's)
 universe:
   - SPY
   - QQQ
@@ -38,18 +38,40 @@ universe:
   - CVX
   - ADBE
 
+# Crypto (24/7). Enkel deze munten; deel van de portefeuille begrensd.
+crypto:
+  symbols: [BTC/USD, ETH/USD]
+  max_total_pct: 20           # crypto samen nooit meer dan dit
+  max_position_pct: 12        # per munt
+
+# Regelstrategie (beslist WAT en HOEVEEL; de AI kan enkel verlagen)
+strategy:
+  target_invested_pct: 95     # rest blijft cash
+  stock_top_n: 10             # sterkste N aandelen/ETF's
+  trend_sma_days: 200         # enkel bezitten boven dit gemiddelde
+  momentum_months: 12         # momentum over 12 maanden, laatste maand uitgezonderd
+  crypto_momentum_days: 90    # crypto: positief rendement over 90 dagen vereist
+  ai_filter: true             # AI mag posities halveren of schrappen, nooit vergroten
+
+# Schaduwportefeuilles (virtueel doorgerekend, worden NIET verhandeld)
+shadows:
+  enabled: true
+  cost_pct: {stock: 0.05, crypto: 0.25}   # geschatte kosten per transactie (spread + fee)
+  ai_free_max_position_pct: 25
+
 risk:
   max_drawdown_pct: 15        # vanaf piek: geen nieuwe aankopen meer (pauzestand)
-  max_position_pct: 10        # max gewicht per positie
+  max_position_pct: 10        # max gewicht per aandeel/ETF
   min_cash_pct: 5             # minimale cashbuffer
-  max_orders_per_day: 10
+  max_orders_per_day: 16
   min_order_usd: 100          # kleinere aanpassingen worden genegeerd
-  min_ai_confidence: 0.6      # lagere zekerheid -> geen actie
-  max_data_age_hours: 96      # ouder koersdata -> geen nieuwe orders (weekend + feestdag)
+  min_ai_confidence: 0.6      # enkel voor AI-gestuurde beslissingen
+  max_data_age_hours: 96      # aandelen: oudere koersdata -> geen nieuwe orders
+  max_crypto_data_age_hours: 36
 
 schedule:
   check_interval_min: 15      # tijdens beursuren: posities/orders controleren
-  analysis_after_open_min: 20 # dagelijkse AI-analyse X min na opening
+  analysis_after_open_min: 20 # dagelijkse analyse X min na opening
   news_interval_min: 60       # buiten beursuren: nieuws ophalen en bewaren
 
 ai:

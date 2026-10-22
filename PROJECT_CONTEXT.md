@@ -67,10 +67,18 @@ Dit schema is nog niet definitief. Geen vereiste voor high-frequency trading of 
 
 ## Gekozen uitgangspunten (22 okt 2026)
 
-- Strategie: vooral AI-gedreven. De AI kiest uit een vaste lijst van 30 liquide US-aandelen/ETF's (config.yaml); regels dienen als vangnet.
+- Strategie (v1, vervangen door v2 hieronder): vooral AI-gedreven.
 - Maximale terugval: -15% vanaf piek → geen nieuwe aankopen (verkopen blijft mogelijk).
 - Maximale positie: 10% van de portefeuille. Cashbuffer 5%, min. AI-zekerheid 0,6, max. 10 orders per dag.
 - Benchmark: S&P 500 (SPY).
+
+## Strategie v2 (22 okt 2026, op voorstel van Claude, akkoord gebruiker)
+
+- Gebruiker vroeg naar crypto vs aandelen; gekozen: aandelen/ETF-basis + crypto 0–20% via trendregels. AI niet meer leidend maar filter (enkel halveren/schrappen bij concrete rode vlag). Faalt AI → enkel verkopen.
+- Crypto via Alpaca paper (crypto_status ACTIVE, 36 paren); gekozen munten: BTC/USD, ETH/USD. Max 12% per munt, 20% samen.
+- Schaduwportefeuilles (virtueel): regels zonder AI, 50/50, AI vrij (max 25%/positie), SPY. Doel: na x tijd herevalueren welke aanpak het best werkt (rendement + max terugval, na geschatte kosten).
+- Crypto-uitstapcontrole elke 4 uur buiten beursuren (enkel verkopen).
+- Eerste live dry-run v2 (22 okt 20:45): 12 doelposities (10 aandelen/ETF + BTC/ETH = 20%), 95% belegd; schaduwen werken; 'AI vrij' faalde door gratis quotum.
 
 ## Startstrategie en risicobeheer
 

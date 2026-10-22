@@ -45,8 +45,9 @@ def check_order(p: Proposal, c: Context, r: Risk, now: datetime | None = None) -
         return "noodstop_actief"
     if not c.account_ok:
         return "account_status_onduidelijk"
-    if not c.market_open:
-        return "markt_gesloten"
+    crypto = "/" in p.symbol
+    if not crypto and not c.market_open:
+        return "markt_gesloten"   # crypto handelt 24/7
     if p.symbol not in c.universe:
         return "niet_in_universum"
     if p.side not in ("buy", "sell") or p.notional <= 0:
@@ -60,7 +61,8 @@ def check_order(p: Proposal, c: Context, r: Risk, now: datetime | None = None) -
     if p.confidence < r.min_ai_confidence:
         return "te_lage_zekerheid"
     as_of = c.price_as_of.get(p.symbol)
-    if as_of is None or (now - as_of).total_seconds() / 3600 > r.max_data_age_hours:
+    max_age = r.max_crypto_data_age_hours if crypto else r.max_data_age_hours
+    if as_of is None or (now - as_of).total_seconds() / 3600 > max_age:
         return "verouderde_data"
 
     if p.side == "sell":
@@ -74,8 +76,13 @@ def check_order(p: Proposal, c: Context, r: Risk, now: datetime | None = None) -
     if drawdown_pct(c.equity, c.peak_equity) >= r.max_drawdown_pct:
         return "max_terugval_bereikt"
     new_value = c.position_values.get(p.symbol, 0) + p.notional
-    if new_value > c.equity * r.max_position_pct / 100 * 1.001:
+    cap = r.max_crypto_position_pct if crypto else r.max_position_pct
+    if new_value > c.equity * cap / 100 * 1.001:
         return "max_positiegrootte"
+    if crypto:
+        crypto_total = sum(v for s, v in c.position_values.items() if "/" in s) + p.notional
+        if crypto_total > c.equity * r.max_crypto_total_pct / 100 * 1.001:
+            return "max_crypto_aandeel"
     if c.cash - p.notional < c.equity * r.min_cash_pct / 100:
         return "cashbuffer"
     return None

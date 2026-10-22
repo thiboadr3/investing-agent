@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
@@ -22,18 +22,32 @@ class Risk:
     min_order_usd: float
     min_ai_confidence: float
     max_data_age_hours: float
+    max_crypto_data_age_hours: float = 36
+    max_crypto_total_pct: float = 20
+    max_crypto_position_pct: float = 12
 
 
 @dataclass(frozen=True)
 class Config:
-    universe: tuple[str, ...]
+    universe: tuple[str, ...]          # aandelen/ETF's
+    crypto: tuple[str, ...]            # bv. ("BTC/USD", "ETH/USD")
     benchmark: str
     risk: Risk
+    strategy: dict
+    shadows: dict
     schedule: dict
     ai: dict
     alpaca_key: str
     alpaca_secret: str
     gemini_key: str
+
+    @property
+    def all_symbols(self) -> tuple[str, ...]:
+        return self.universe + self.crypto
+
+
+def is_crypto(symbol: str) -> bool:
+    return "/" in symbol
 
 
 def load(path: Path | None = None) -> Config:
@@ -41,10 +55,17 @@ def load(path: Path | None = None) -> Config:
     raw = yaml.safe_load((path or ROOT / "config.yaml").read_text())
     if raw.get("mode") != "paper":
         raise SystemExit("Alleen mode: paper is toegestaan in deze fase.")
+    cr = raw.get("crypto") or {}
+    risk = dict(raw["risk"])
+    risk["max_crypto_total_pct"] = cr.get("max_total_pct", 20)
+    risk["max_crypto_position_pct"] = cr.get("max_position_pct", 12)
     return Config(
         universe=tuple(s.upper() for s in raw["universe"]),
+        crypto=tuple(s.upper() for s in cr.get("symbols", [])),
         benchmark=raw.get("benchmark", "SPY"),
-        risk=Risk(**raw["risk"]),
+        risk=Risk(**risk),
+        strategy=raw.get("strategy", {}),
+        shadows=raw.get("shadows", {"enabled": False}),
         schedule=raw["schedule"],
         ai=raw["ai"],
         alpaca_key=os.getenv("ALPACA_API_KEY", ""),
