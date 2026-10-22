@@ -31,9 +31,9 @@ jobs:
       # 'dry_run' (standaard): niets plaatsen. Zet variabele TRADING_MODE op 'paper' voor paperorders.
       TRADING_MODE: ${{ vars.TRADING_MODE }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -43,7 +43,7 @@ jobs:
       - name: Logboek ophalen
         run: |
           mkdir -p data
-          if git fetch origin state --depth=1 2>/dev/null; then
+          if git fetch --depth=1 origin +refs/heads/state:refs/remotes/origin/state 2>/dev/null; then
             git show origin/state:agent.db > data/agent.db || true
           fi
 
@@ -66,7 +66,7 @@ jobs:
           cp data/agent.db /tmp/agent.db
           git config user.name "investing-agent"
           git config user.email "actions@users.noreply.github.com"
-          if git fetch origin state --depth=1 2>/dev/null; then
+          if git fetch --depth=1 origin +refs/heads/state:refs/remotes/origin/state 2>/dev/null; then
             git checkout -B state origin/state
           else
             git checkout --orphan state && git rm -rf --quiet .
