@@ -51,6 +51,11 @@ class Agent:
         limit = self.cfg.ai.get("max_calls_per_day", 12)
         if n >= limit:
             raise RuntimeError(f"Kostenrem: max {limit} AI-aanroepen per dag bereikt")
+        month = datetime.now(NY).strftime("%Y%m")
+        spent = self.db.get(f"ai_cost_{month}", 0)
+        cap = self.cfg.ai.get("max_cost_per_month_usd", 5)
+        if spent >= cap:
+            raise RuntimeError(f"Kostenrem: maandbudget ${cap} bereikt (${spent:.2f})")
         self.db.set(f"ai_calls_{today}", n + 1)
 
     def _ai_cost(self, usage: dict) -> float:
@@ -109,6 +114,8 @@ class Agent:
             u = self.analyst.last_usage
             cost = self._ai_cost(u)
             self.db.set("ai_cost_total_usd", round(self.db.get("ai_cost_total_usd", 0) + cost, 4))
+            mkey = f"ai_cost_{datetime.now(NY).strftime('%Y%m')}"
+            self.db.set(mkey, round(self.db.get(mkey, 0) + cost, 4))
             self.db.event("INFO", f"AI-model {self.analyst.last_model}: {u['input']} in / "
                                   f"{u['output']} uit tokens ≈ ${cost:.4f}", u)
         except Exception as e:  # quota, netwerk, ongeldige JSON -> niets doen
@@ -180,7 +187,10 @@ class Agent:
         for s, p in sorted(pos.items(), key=lambda kv: -kv[1].market_value):
             print(f"  {s:6} {p.qty:>10.4f}  ${p.market_value:>10,.2f}  "
                   f"{p.market_value / acct.equity:>6.1%}")
-        print(f"Geschatte AI-kosten tot nu: ${self.db.get('ai_cost_total_usd', 0):.2f}")
+        month = datetime.now(NY).strftime("%Y%m")
+        print(f"Geschatte AI-kosten: deze maand ${self.db.get(f'ai_cost_{month}', 0):.2f} "
+              f"(max ${self.cfg.ai.get('max_cost_per_month_usd', 5)}), "
+              f"totaal ${self.db.get('ai_cost_total_usd', 0):.2f}")
         if config.STOP_FILE.exists():
             print("NOODSTOP ACTIEF")
 
