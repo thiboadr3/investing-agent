@@ -29,7 +29,7 @@ jobs:
       ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       # 'dry_run' (standaard): niets plaatsen. Zet variabele TRADING_MODE op 'paper' voor paperorders.
-      DRY_FLAG: ${{ vars.TRADING_MODE == 'paper' && '' || '--dry-run' }}
+      TRADING_MODE: ${{ vars.TRADING_MODE }}
     steps:
       - uses: actions/checkout@v4
 
@@ -53,8 +53,11 @@ jobs:
       - name: Agent
         run: |
           CMD="${{ github.event.inputs.command || 'tick' }}"
+          case "$CMD" in status|tick|once) ;; *) echo "Onbekend commando: $CMD"; exit 1;; esac
+          if [ "$TRADING_MODE" = "paper" ]; then FLAG=""; echo "Modus: PAPER (orders worden geplaatst)"
+          else FLAG="--dry-run"; echo "Modus: DRY-RUN (niets wordt geplaatst)"; fi
           if [ "$CMD" = "status" ]; then python -m agent status
-          else python -m agent "$CMD" $DRY_FLAG; fi
+          else python -m agent "$CMD" $FLAG; fi
 
       - name: Logboek bewaren
         if: always()
