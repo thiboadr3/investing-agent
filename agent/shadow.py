@@ -11,7 +11,7 @@ import json
 from .db import DB, now
 
 NAMES = {
-    "regels_zonder_ai": "Regels zonder AI-filter (20% crypto-max)",
+    "regels_zonder_ai": "Regels zonder AI-filter",
     "50_50": "50% crypto / 50% aandelen",
     "ai_vrij": "AI kiest volledig vrij",
     "spy": "SPY kopen en houden",

@@ -38,9 +38,10 @@ universe:
   - CVX
   - ADBE
 
-# Crypto (24/7). Enkel deze munten; deel van de portefeuille begrensd.
+# Crypto (24/7). Voorlopig UIT: eerst focussen op aandelen.
+# Terug aanzetten: symbols: [BTC/USD, ETH/USD]
 crypto:
-  symbols: [BTC/USD, ETH/USD]
+  symbols: []
   max_total_pct: 20           # crypto samen nooit meer dan dit
   max_position_pct: 12        # per munt
 
@@ -71,7 +72,8 @@ risk:
 
 schedule:
   check_interval_min: 15      # tijdens beursuren: posities/orders controleren
-  analysis_after_open_min: 20 # dagelijkse analyse X min na opening
+  premarket_hours: 3          # onderzoek en plan maken tot X uur vóór de opening
+  execute_after_open_min: 5   # plan uitvoeren vanaf X min na de opening (eerste minuten zijn erg onrustig)
   news_interval_min: 60       # buiten beursuren: nieuws ophalen en bewaren
 
 ai:

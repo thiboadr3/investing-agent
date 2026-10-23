@@ -162,24 +162,22 @@ class Agent:
         return rules.targets(snaps, self.cfg.strategy, r.max_position_pct / 100,
                              r.max_crypto_total_pct / 100, r.max_crypto_position_pct / 100)
 
-    def analyse_and_trade(self, dry_run: bool, ignore_hours: bool = False):
-        cfg, r = self.cfg, self.cfg.risk
-        cycle_id = datetime.now(NY).strftime("%Y%m%d")  # één analyse per beursdag
-        acct, pos, peak = self.snapshot()
-        clock = self.broker.market_clock()
-
+    # ---------- 1. onderzoek vóór de opening ----------
+    def build_plan(self) -> dict:
+        """Data + regels + AI-filter -> kooplijst voor vandaag. Plaatst zelf niets."""
+        cfg = self.cfg
+        cycle_id = datetime.now(NY).strftime("%Y%m%d")
+        acct, pos, _ = self.snapshot()
         snaps = self.data.snapshots(list(cfg.universe), list(cfg.crypto),
                                     cfg.strategy.get("trend_sma_days", 200))
-        news = (self.data.news(list(cfg.universe), cfg.ai["news_lookback_hours"], 50)
-                + self.data.news(list(cfg.crypto), cfg.ai["news_lookback_hours"], 20))
+        news = self.data.news(list(cfg.universe), cfg.ai["news_lookback_hours"], 50)
+        if cfg.crypto:
+            news += self.data.news(list(cfg.crypto), cfg.ai["news_lookback_hours"], 20)
         self.store_news(news)
 
-        # 1) regels bepalen de doelportefeuille
-        rule_w, why = self._rule_targets(snaps)
-
-        # 2) AI mag enkel verkleinen
+        rule_w, why = self._rule_targets(snaps)       # regels bepalen wat en hoeveel
         final_w, ai_ok, notes, view, raw = dict(rule_w), True, [], "", None
-        if cfg.strategy.get("ai_filter", True) and rule_w:
+        if cfg.strategy.get("ai_filter", True) and rule_w:   # AI mag enkel verkleinen
             try:
                 raw = self._ai_call(ai.filter_prompt(snaps, rule_w, news), "filter")
                 factors, cf, notes, view = ai.parse_filter(raw, set(rule_w))
@@ -189,10 +187,10 @@ class Agent:
                 final_w = {s: w for s, w in final_w.items() if w > 0}
             except Exception as e:
                 ai_ok = False
-                self.db.event("ERROR", "AI-filter mislukt: enkel verkopen, geen aankopen", str(e))
+                self.db.event("ERROR", "AI-filter mislukt: vandaag enkel verkopen", str(e))
 
         ai_note = {n["symbol"]: n for n in notes}
-        for s in sorted(set(rule_w) | set(final_w) | {p for p in pos}):
+        for s in sorted(set(rule_w) | set(final_w) | set(pos)):
             n = ai_note.get(s)
             action = "drop" if n and n["factor"] == 0 else "halve" if n else "keep"
             self.db.x("INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?)",
@@ -202,42 +200,71 @@ class Agent:
         if view:
             self.db.event("INFO", f"AI-marktbeeld: {view[:300]}")
 
-        # 3) orders
-        ctx = self._risk_ctx(acct, pos, peak, clock, snaps, dry_run, ignore_hours)
-        props = strategy.proposals(final_w, acct.equity, ctx.position_values,
-                                   set(cfg.all_symbols), r.min_order_usd, allow_buys=ai_ok)
-        crypto_w = sum(w for s, w in final_w.items() if config.is_crypto(s))
-        self.db.event("INFO", f"Cyclus {cycle_id}: {len(final_w)} doelposities "
-                              f"(crypto {crypto_w:.0%}), {len(props)} orderkandidaten")
-        self._execute(props, ctx, cycle_id, dry_run, "regels+ai" if ai_ok else "regels")
-        self.db.set("last_analysis_dry" if dry_run else "last_analysis", cycle_id)
-
-        # 4) schaduwportefeuilles
+        free_w = None   # schaduw 'AI vrij': ook nu al beslissen
         if cfg.shadows.get("enabled", True):
-            self.update_shadows(snaps, news, rule_w, acct.equity, cycle_id)
+            try:
+                cur = self.shadows._load("ai_vrij")
+                prices = {s: v.price for s, v in snaps.items()}
+                tot = self.shadows.value(cur, prices) if cur else 0
+                cur_w = ({s: q * prices.get(s, 0) / tot for s, q in cur["h"].items()}
+                         if cur and tot else {})
+                max_w = cfg.shadows.get("ai_free_max_position_pct", 25) / 100
+                raw_f = self._ai_call(ai.free_prompt(snaps, cur_w, news, max_w), "vrij")
+                free_w, _ = ai.parse_free(raw_f, set(cfg.all_symbols), max_w)
+            except Exception as e:
+                self.db.event("WARN", "Schaduw 'AI vrij': geen beslissing vandaag", str(e))
 
-    def update_shadows(self, snaps, news, rule_w, equity, cycle_id):
+        plan = {"cycle": cycle_id, "built": now(), "weights": final_w, "rule_weights": rule_w,
+                "ai_ok": ai_ok, "free_weights": free_w,
+                "why": {s: why.get(s, "") for s in final_w}}
+        self.db.set(f"plan_{cycle_id}", plan)
+        top = sorted(final_w.items(), key=lambda kv: -kv[1])
+        self.db.event("INFO", f"Plan {cycle_id}: {len(final_w)} doelposities "
+                              f"({sum(final_w.values()):.0%} belegd), AI-filter "
+                              f"{'OK' if ai_ok else 'MISLUKT'}: "
+                              + ", ".join(f"{s} {w:.1%}" for s, w in top))
+        return plan
+
+    # ---------- 2. uitvoeren na de opening ----------
+    def execute_plan(self, plan: dict, dry_run: bool, ignore_hours: bool = False):
+        cfg, r = self.cfg, self.cfg.risk
+        cycle_id = plan["cycle"]
+        acct, pos, peak = self.snapshot()
+        clock = self.broker.market_clock()
+        # verse koersen voor de datacontrole en de schaduwportefeuilles
+        snaps = self.data.snapshots(list(cfg.universe), list(cfg.crypto),
+                                    cfg.strategy.get("trend_sma_days", 200))
+        ctx = self._risk_ctx(acct, pos, peak, clock, snaps, dry_run, ignore_hours)
+        props = strategy.proposals(plan["weights"], acct.equity, ctx.position_values,
+                                   set(cfg.all_symbols), r.min_order_usd,
+                                   allow_buys=plan["ai_ok"])
+        self.db.event("INFO", f"Uitvoering {cycle_id}: {len(props)} orderkandidaten "
+                              f"(plan van {plan['built']})")
+        self._execute(props, ctx, cycle_id, dry_run, "regels+ai" if plan["ai_ok"] else "regels")
+        self.db.set("last_analysis_dry" if dry_run else "last_analysis", cycle_id)
+        if cfg.shadows.get("enabled", True):
+            self.update_shadows(snaps, plan, acct.equity, cycle_id)
+
+    def analyse_and_trade(self, dry_run: bool, ignore_hours: bool = False):
+        """Handmatig: onderzoek + uitvoering in één keer."""
+        self.execute_plan(self.build_plan(), dry_run, ignore_hours)
+
+    def update_shadows(self, snaps, plan, equity, cycle_id):
         if self.db.get("last_shadow_day") == cycle_id:
             return
         prices = {s: v.price for s, v in snaps.items()}
-        sh, strat = self.shadows, self.cfg.strategy
-        for name in NAMES:
+        sh = self.shadows
+        names = [n for n in NAMES if n != "50_50" or self.cfg.crypto]
+        for name in names:
             sh.ensure(name, equity)
-        sh.rebalance("regels_zonder_ai", rule_w, prices)
-        sh.rebalance("50_50", rules.fixed_split(snaps, strat, 0.5,
-                                                self.cfg.risk.max_position_pct / 100), prices)
+        sh.rebalance("regels_zonder_ai", plan["rule_weights"], prices)
+        if self.cfg.crypto:
+            sh.rebalance("50_50", rules.fixed_split(snaps, self.cfg.strategy, 0.5,
+                                                    self.cfg.risk.max_position_pct / 100), prices)
         if not sh._load("spy")["h"]:
             sh.rebalance("spy", {self.cfg.benchmark: 1.0}, prices)
-        try:
-            cur = sh._load("ai_vrij")
-            tot = sh.value(cur, prices)
-            cur_w = {s: q * prices.get(s, 0) / tot for s, q in cur["h"].items()} if tot else {}
-            max_w = self.cfg.shadows.get("ai_free_max_position_pct", 25) / 100
-            raw = self._ai_call(ai.free_prompt(snaps, cur_w, news, max_w), "vrij")
-            free_w, _ = ai.parse_free(raw, set(self.cfg.all_symbols), max_w)
-            sh.rebalance("ai_vrij", free_w, prices)
-        except Exception as e:
-            self.db.event("WARN", "Schaduw 'AI vrij' niet bijgewerkt", str(e))
+        if plan.get("free_weights") is not None:
+            sh.rebalance("ai_vrij", plan["free_weights"], prices)
         sh.mark(prices)
         self.db.set("last_shadow_day", cycle_id)
 
@@ -285,23 +312,42 @@ class Agent:
             print("NOODSTOP ACTIEF")
 
     def tick(self, dry_run: bool):
-        """Eén korte doorloop, bedoeld voor een planner (GitHub Actions/cron)."""
+        """Eén korte doorloop, bedoeld voor een planner (GitHub Actions/cron).
+
+        Vóór de opening: onderzoek -> plan. Na de opening: plan meteen uitvoeren.
+        """
+        sch = self.cfg.schedule
         clock = self.broker.market_clock()
         self.snapshot()
         self.reconcile()
-        if not clock.is_open:
-            print(f"Beurs gesloten (volgende opening {clock.next_open}); crypto-controle.")
-            self.crypto_exit_check(dry_run)
-        else:
-            mins_left = (clock.next_close - clock.timestamp).total_seconds() / 60
-            today = datetime.now(NY).strftime("%Y%m%d")
-            key = "last_analysis_dry" if dry_run else "last_analysis"
-            if self.db.get(key) == today:
-                print("Analyse van vandaag is al gebeurd; enkel opvolging.")
-            elif mins_left > SESSION_MIN - self.cfg.schedule["analysis_after_open_min"]:
-                print("Te vroeg na de opening; analyse volgt bij een volgende run.")
+        today = datetime.now(NY).strftime("%Y%m%d")
+        plan = self.db.get(f"plan_{today}")
+        done = self.db.get("last_analysis_dry" if dry_run else "last_analysis") == today
+        if clock.is_open:
+            mins_open = SESSION_MIN - (clock.next_close - clock.timestamp).total_seconds() / 60
+            if done:
+                print("Plan van vandaag is al uitgevoerd; enkel opvolging.")
+            elif mins_open < sch.get("execute_after_open_min", 5):
+                print(f"Beurs net open ({mins_open:.0f} min); uitvoering bij volgende run.")
             else:
-                self.analyse_and_trade(dry_run=dry_run)
+                if plan is None or (not plan["ai_ok"] and not plan.get("retried")):
+                    if plan is not None:
+                        print("AI-filter faalde vóór de opening; nog één poging.")
+                    plan = self.build_plan()
+                    plan["retried"] = True
+                    self.db.set(f"plan_{today}", plan)
+                self.execute_plan(plan, dry_run)
+        else:
+            until_open = (clock.next_open - clock.timestamp).total_seconds() / 3600
+            opens_today = clock.next_open.astimezone(NY).strftime("%Y%m%d") == today
+            if opens_today and until_open <= sch.get("premarket_hours", 3) and plan is None:
+                print(f"Beurs opent over {until_open:.1f} u: onderzoek en plan maken.")
+                self.build_plan()
+            elif plan is not None and not done:
+                print("Plan klaar; wordt uitgevoerd na de opening.")
+            else:
+                print(f"Beurs gesloten (volgende opening {clock.next_open}).")
+            self.crypto_exit_check(dry_run)
         self.report()
 
     def report(self):

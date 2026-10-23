@@ -2,11 +2,10 @@ name: Investing Agent
 
 on:
   schedule:
-    # Elke 30 min op weekdagen, 13:00–21:30 UTC (dekt Amerikaanse beursuren in zomer- en wintertijd).
+    # Elke 30 min op weekdagen, 10:00–21:30 UTC: onderzoek vóór de opening (plan),
+    # uitvoering vlak na de opening, opvolging tijdens de sessie (zomer- en wintertijd).
     # De agent controleert zelf of de beurs open is (feestdagen, vroege sluiting).
-    - cron: "*/30 13-21 * * 1-5"
-    # Elke 4 uur, ook 's nachts en in het weekend: crypto-uitstapcontrole (verkoopt enkel bij trendbreuk).
-    - cron: "17 */4 * * *"
+    - cron: "*/30 10-21 * * 1-5"
   workflow_dispatch:
     inputs:
       command:

@@ -4,7 +4,8 @@ AI-gedreven agent die een **paper**-portefeuille bij Alpaca beheert. Geen echt g
 
 ## Hoe het werkt
 
-1. **Data** — dagkoersen voor 30 aandelen/ETF's (Alpaca IEX, gratis) en crypto (BTC/USD, ETH/USD), plus nieuws (Alpaca News).
+0. **Dagritme** — tot 3 uur vóór de opening: onderzoek (data, regels, AI-filter) → kooplijst (plan). Vanaf 5 min na de opening: plan uitvoeren. Daarna enkel opvolging.
+1. **Data** — dagkoersen voor 30 aandelen/ETF's (Alpaca IEX, gratis, gecorrigeerd voor splitsingen/dividenden) en nieuws (Alpaca News). Crypto staat voorlopig **uit** (`crypto.symbols: []`).
 2. **Regels** (`agent/rules.py`, zonder AI) bepalen de doelportefeuille:
    - *Aandelen/ETF's*: enkel boven het 200-daagse gemiddelde én met positief 12-1-maandsmomentum; de sterkste 10; gewicht omgekeerd evenredig met volatiliteit, max 10 % per positie.
    - *Crypto*: per munt enkel bij trend (boven 200d-gemiddelde en positief 3m-rendement). Beide munten in trend → 20 %, één → 10 %, geen → 0 %. Max 12 % per munt.
@@ -44,7 +45,7 @@ Logboek bekijken: `sqlite3 data/agent.db "select * from decisions order by ts de
 
 ## In de cloud: GitHub Actions
 
-`.github/workflows/agent.yml` start de agent elke 30 min op weekdagen (13:00–21:30 UTC) en elke 4 uur (crypto-controle) met `python -m agent tick`. De agent controleert zelf of de beurs open is, doet één AI-analyse per beursdag en volgt verder enkel op. Het logboek (`agent.db`) wordt na elke run bewaard op de branch `state`.
+`.github/workflows/agent.yml` start de agent elke 30 min op weekdagen (10:00–21:30 UTC: onderzoek vóór de opening, uitvoering erna, opvolging) met `python -m agent tick`. De agent controleert zelf of de beurs open is, doet één AI-analyse per beursdag en volgt verder enkel op. Het logboek (`agent.db`) wordt na elke run bewaard op de branch `state`.
 
 Instellen (Settings → Secrets and variables → Actions):
 

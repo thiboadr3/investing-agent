@@ -80,6 +80,15 @@ Dit schema is nog niet definitief. Geen vereiste voor high-frequency trading of 
 - Crypto-uitstapcontrole elke 4 uur buiten beursuren (enkel verkopen).
 - Eerste live dry-run v2 (22 okt 20:45): 12 doelposities (10 aandelen/ETF + BTC/ETH = 20%), 95% belegd; schaduwen werken; 'AI vrij' faalde door gratis quotum.
 
+## Aanpassing 23 okt 2026 (vraag gebruiker)
+
+- Crypto UIT (config `crypto.symbols: []`): eerst volledig focussen op aandelen/ETF's om sneller lessen te trekken. Schaduw 50/50 vervalt zolang crypto uit staat.
+- Onderzoek vóór de opening: tot 3 u vóór de opening wordt het plan gemaakt (regels + AI-filter + beslissing 'AI vrij'); uitvoering vanaf 5 min na de opening. Faalde de AI vóór de opening → één nieuwe poging bij de opening. Planning: elke 30 min op weekdagen 10:00–21:30 UTC.
+- Repo thiboadr3/investing-agent is nu PUBLIEK (keuze gebruiker). Geplande runs bleken ook privé te werken, met 1–2 u vertraging.
+- Fix: koersen nu gecorrigeerd voor splitsingen/dividenden (Adjustment.ALL).
+- Live dry-run 23 okt (AI OK, ~$0,02/dag): 10 posities à ~10% (XLE, KO, QQQ, XOM, JNJ, CVX, AAPL, XLK, LLY, NVDA). Aandachtspunt: ~30% energie (XLE+XOM+CVX) → sectorlimiet overwegen.
+- Onderzoek 13F (research/): ARK, Situational Awareness, Altimeter, Coatue, Tiger Global. Kopieertest 2026: enkel ARK (+23 pp) en SA (+3 pp) versloegen SPY. Les: thema AI-infra (geheugen/chips) juist; drukke nieuwe AI-namen (CBRS, CRWV) crashten; universum mist winnaars (MU, SNDK, LRCX, AMAT).
+
 ## Startstrategie en risicobeheer
 
 Voorstel: een klein universum van circa 10–20 liquide Amerikaanse aandelen/ETF's, zonder hefboom, shortposities of derivaten. Posities kunnen dagen tot maanden blijven staan. Concrete instrumenten en signalen zijn nog niet gekozen.
