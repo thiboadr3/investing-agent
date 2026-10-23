@@ -29,7 +29,8 @@ jobs:
       ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
       ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      # 'dry_run' (standaard): niets plaatsen. Zet variabele TRADING_MODE op 'paper' voor paperorders.
+      # Standaard 'paper': orders op de Alpaca-PAPERrekening (nep-geld). Zet variabele TRADING_MODE
+      # op 'dry_run' om enkel te loggen zonder iets te plaatsen. Live trading bestaat niet in deze code.
       TRADING_MODE: ${{ vars.TRADING_MODE }}
     steps:
       - uses: actions/checkout@v5
@@ -55,8 +56,8 @@ jobs:
         run: |
           CMD="${{ github.event.inputs.command || 'tick' }}"
           case "$CMD" in status|tick|once|report) ;; *) echo "Onbekend commando: $CMD"; exit 1;; esac
-          if [ "$TRADING_MODE" = "paper" ]; then FLAG=""; echo "Modus: PAPER (orders worden geplaatst)"
-          else FLAG="--dry-run"; echo "Modus: DRY-RUN (niets wordt geplaatst)"; fi
+          if [ "$TRADING_MODE" = "dry_run" ]; then FLAG="--dry-run"; echo "Modus: DRY-RUN (niets wordt geplaatst)"
+          else FLAG=""; echo "Modus: PAPER (orders op paperrekening)"; fi
           if [ "$CMD" = "status" ] || [ "$CMD" = "report" ]; then python -m agent "$CMD"
           else python -m agent "$CMD" $FLAG; fi
 

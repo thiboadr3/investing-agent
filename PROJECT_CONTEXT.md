@@ -84,6 +84,7 @@ Dit schema is nog niet definitief. Geen vereiste voor high-frequency trading of 
 
 - Crypto UIT (config `crypto.symbols: []`): eerst volledig focussen op aandelen/ETF's om sneller lessen te trekken. Schaduw 50/50 vervalt zolang crypto uit staat.
 - Onderzoek vóór de opening: tot 3 u vóór de opening wordt het plan gemaakt (regels + AI-filter + beslissing 'AI vrij'); uitvoering vanaf 5 min na de opening. Faalde de AI vóór de opening → één nieuwe poging bij de opening. Planning: elke 30 min op weekdagen 10:00–21:30 UTC.
+- 23 okt: gebruiker: paper = testfase, paperorders mogen. Workflow staat standaard op PAPER (TRADING_MODE=dry_run om enkel te loggen).
 - Repo thiboadr3/investing-agent is nu PUBLIEK (keuze gebruiker). Geplande runs bleken ook privé te werken, met 1–2 u vertraging.
 - Fix: koersen nu gecorrigeerd voor splitsingen/dividenden (Adjustment.ALL).
 - Live dry-run 23 okt (AI OK, ~$0,02/dag): 10 posities à ~10% (XLE, KO, QQQ, XOM, JNJ, CVX, AAPL, XLK, LLY, NVDA). Aandachtspunt: ~30% energie (XLE+XOM+CVX) → sectorlimiet overwegen.

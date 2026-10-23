@@ -54,7 +54,7 @@ Instellen (Settings → Secrets and variables → Actions):
 | Secret | `ALPACA_API_KEY` | Alpaca paper Key ID |
 | Secret | `ALPACA_SECRET_KEY` | Alpaca paper Secret |
 | Secret | `GEMINI_API_KEY` | Google AI Studio-key |
-| Variable | `TRADING_MODE` | `dry_run` (standaard, niets plaatsen) of `paper` |
+| Variable | `TRADING_MODE` | niet ingesteld = `paper` (standaard, paperorders) · `dry_run` = enkel loggen |
 | Variable | `AGENT_STOP` | `true` = noodstop, geen runs |
 
 Handmatig starten: tab **Actions → Investing Agent → Run workflow** (`status`, `tick` of `once`).
