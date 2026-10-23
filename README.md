@@ -16,7 +16,8 @@ AI-gedreven agent die een **paper**-portefeuille bij Alpaca beheert. Geen echt g
 6. **Buiten beursuren** (elke 4 uur, ook weekend): crypto-uitstapcontrole — verkoopt een munt als de trend breekt, koopt nooit.
 7. **Schaduwportefeuilles** (virtueel, niet verhandeld) om te vergelijken: *regels zonder AI-filter*, *50 % crypto / 50 % aandelen*, *AI volledig vrij*, *SPY kopen en houden*. Met geschatte kosten (aandelen 0,05 %, crypto 0,25 % per transactie).
 8. **Rapport** — na elke run in de GitHub Actions-samenvatting en via `python -m agent report`.
-9. **Logboek** — alles in SQLite (`agent.db`): beslissingen + redenen, AI-aanpassingen, orders, weigeringen, nieuws, snapshots, schaduwwaarden, kosten.
+9. **Portefeuilleoverzicht** — per positie: wat het bedrijf doet, waarom gekozen (cijfers + AI-fiche), risico, resultaat sinds aankoop, recent nieuws en links. Na elke run bijgewerkt op de branch `state`: [PORTFOLIO.md](https://github.com/thiboadr3/investing-agent/blob/state/PORTFOLIO.md). Lokaal: `python -m agent overview`.
+10. **Logboek** — alles in SQLite (`agent.db`): beslissingen + redenen, AI-aanpassingen, orders, weigeringen, nieuws, snapshots, schaduwwaarden, kosten.
 
 ## Installatie (lokaal, Mac)
 

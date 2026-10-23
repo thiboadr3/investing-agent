@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS news (
 CREATE TABLE IF NOT EXISTS events (
   ts TEXT, level TEXT, message TEXT, detail TEXT);
 CREATE TABLE IF NOT EXISTS state (key TEXT PRIMARY KEY, value TEXT);
+CREATE TABLE IF NOT EXISTS fiches (
+  symbol TEXT, day TEXT, data TEXT, PRIMARY KEY (symbol, day));
 """
 
 

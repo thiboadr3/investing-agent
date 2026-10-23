@@ -24,6 +24,9 @@ class Position:
     symbol: str
     qty: float
     market_value: float
+    avg_entry_price: float = 0.0
+    unrealized_pl: float = 0.0
+    unrealized_plpc: float = 0.0
 
 
 @dataclass
@@ -53,12 +56,20 @@ class Broker:
         out = {}
         for p in self.client.get_all_positions():
             s = norm_symbol(p.symbol, getattr(p, "asset_class", ""))
-            out[s] = Position(s, float(p.qty), float(p.market_value))
+            out[s] = Position(s, float(p.qty), float(p.market_value),
+                              float(p.avg_entry_price or 0), float(p.unrealized_pl or 0),
+                              float(p.unrealized_plpc or 0))
         return out
 
     def open_order_symbols(self) -> set[str]:
         orders = self.client.get_orders(GetOrdersRequest(status=QueryOrderStatus.OPEN))
         return {norm_symbol(o.symbol, getattr(o, "asset_class", "")) for o in orders}
+
+    def asset_name(self, symbol: str) -> str:
+        try:
+            return str(self.client.get_asset(symbol).name or symbol)
+        except Exception:
+            return symbol
 
     def market_clock(self):
         return self.client.get_clock()  # .is_open, .next_open, .next_close, .timestamp

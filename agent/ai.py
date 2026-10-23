@@ -42,6 +42,40 @@ Formaat:
 "confidence": 0.7, "reason": "..."}}]}}"""
 
 
+EXPLAIN = """Schrijf voor een belegger die zich zelf wil verdiepen een korte, feitelijke fiche
+per positie in de doelportefeuille hieronder (in het Nederlands, geen beleggingsadvies).
+Per symbool:
+- company: officiële naam
+- what: wat het bedrijf/de ETF doet, 1-2 zinnen
+- why: waarom het regelsysteem het koos, gebaseerd op de gegeven cijfers (trend, momentum,
+  volatiliteit) en eventueel relevant nieuws; 1-2 zinnen. Verzin geen cijfers.
+- risk: het belangrijkste risico om op te volgen, 1 zin
+
+{guard}
+
+Formaat: {{"positions": [{{"symbol": "AAPL", "company": "...", "what": "...", "why": "...",
+"risk": "..."}}]}}"""
+
+
+def explain_prompt(snaps: dict, weights: dict[str, float], why: dict[str, str],
+                   news: list[dict]) -> str:
+    lines = [EXPLAIN.format(guard=GUARD), "", "DOELPORTEFEUILLE (symbool | gewicht | reden regels)"]
+    for s, w in sorted(weights.items(), key=lambda kv: -kv[1]):
+        lines.append(f"{s} | {w:.1%} | {why.get(s, '')}")
+    sel = {s: v for s, v in snaps.items() if s in weights}
+    return "\n".join(lines + [""] + market_table(sel, weights, "gewicht") + [""]
+                     + news_block([n for n in news if set(n.get("symbols", [])) & set(weights)]))
+
+
+def parse_explain(text: str, allowed: set[str]) -> dict[str, dict]:
+    out = {}
+    for p in json.loads(text).get("positions", []) or []:
+        s = str(p.get("symbol", "")).upper()
+        if s in allowed:
+            out[s] = {k: str(p.get(k, ""))[:400] for k in ("company", "what", "why", "risk")}
+    return out
+
+
 def _fmt(v, pct=True):
     return "n/a" if v is None else (f"{v:+.1%}" if pct else f"{v:.0%}")
 

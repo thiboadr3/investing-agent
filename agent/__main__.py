@@ -200,6 +200,24 @@ class Agent:
         if view:
             self.db.event("INFO", f"AI-marktbeeld: {view[:300]}")
 
+        # fiche per positie (wat doet het bedrijf, waarom gekozen, risico) — niet kritisch
+        if final_w:
+            metrics = {s: {"momentum_12_1": snaps[s].mom_12_1, "ret_3m": snaps[s].ret_3m,
+                           "vol_3m": snaps[s].vol_3m, "price": snaps[s].price}
+                       for s in final_w if s in snaps}
+            try:
+                fiches = ai.parse_explain(self._ai_call(
+                    ai.explain_prompt(snaps, final_w, why, news), "uitleg"), set(final_w))
+            except Exception as e:
+                fiches = {}
+                self.db.event("WARN", "Uitleg per positie niet gelukt", str(e))
+            for s in final_w:
+                f = fiches.get(s, {})
+                f.update({"rule": why.get(s, ""), "ai_note": (ai_note.get(s) or {}).get("reason", ""),
+                          "weight": final_w[s], "metrics": metrics.get(s, {})})
+                self.db.x("INSERT OR REPLACE INTO fiches VALUES (?,?,?)",
+                          (s, cycle_id, json.dumps(f, ensure_ascii=False)))
+
         free_w = None   # schaduw 'AI vrij': ook nu al beslissen
         if cfg.shadows.get("enabled", True):
             try:
@@ -349,6 +367,78 @@ class Agent:
                 print(f"Beurs gesloten (volgende opening {clock.next_open}).")
             self.crypto_exit_check(dry_run)
         self.report()
+        try:
+            self.portfolio_overview()
+        except Exception as e:
+            self.db.event("WARN", "Portefeuilleoverzicht niet gemaakt", str(e))
+
+    def portfolio_overview(self, path="reports/PORTFOLIO.md"):
+        """Leesbaar overzicht per positie: wat, waarom, risico, resultaat, nieuws, links."""
+        acct, pos, peak = self.snapshot()
+        lines = ["# Investing Agent — portefeuille (paper)", "",
+                 f"_Bijgewerkt {datetime.now(NY):%Y-%m-%d %H:%M} New York-tijd. Paperrekening, "
+                 f"geen echt geld. Geen beleggingsadvies._", "",
+                 f"**Waarde:** ${acct.equity:,.2f} · **cash:** ${acct.cash:,.2f} · "
+                 f"**terugval vanaf piek:** {risk.drawdown_pct(acct.equity, peak):.1f}%", ""]
+        stocks = sorted(pos.values(), key=lambda p: -p.market_value)
+        if not stocks:
+            lines += ["_Nog geen posities._", ""]
+        else:
+            lines += ["| Symbool | Bedrijf | Gewicht | Waarde | Aankoopprijs | Resultaat |",
+                      "|---|---|---:|---:|---:|---:|"]
+        details = []
+        for p in stocks:
+            row = self.db.x("SELECT data, day FROM fiches WHERE symbol=? ORDER BY day DESC LIMIT 1",
+                            (p.symbol,)).fetchone()
+            f = json.loads(row[0]) if row else {}
+            name = f.get("company") or self.db.get(f"name_{p.symbol}")
+            if not name:
+                name = self.broker.asset_name(p.symbol)
+                self.db.set(f"name_{p.symbol}", name)
+            first = self.db.x("SELECT MIN(ts) FROM orders WHERE symbol=? AND side='buy' "
+                              "AND status != 'dry_run'", (p.symbol,)).fetchone()[0]
+            lines.append(f"| [{p.symbol}](#{p.symbol.lower().replace('.', '')}) | {name} | "
+                         f"{p.market_value / acct.equity:.1%} | ${p.market_value:,.0f} | "
+                         f"${p.avg_entry_price:,.2f} | {p.unrealized_plpc:+.1%} "
+                         f"(${p.unrealized_pl:+,.0f}) |")
+            m = f.get("metrics", {})
+            news = self.db.x("SELECT created_at, headline, url FROM news WHERE ','||symbols||',' "
+                             "LIKE ? ORDER BY created_at DESC LIMIT 3",
+                             (f"%,{p.symbol},%",)).fetchall()
+            sym = p.symbol
+            d = [f"### {sym}", f"**{name}**" + (f" — gekocht sinds {first[:10]}" if first else ""), ""]
+            if f.get("what"):
+                d.append(f"- **Wat:** {f['what']}")
+            d.append(f"- **Waarom gekozen:** {f.get('why') or f.get('rule', '—')}")
+            if m:
+                fmt = lambda v: "n/a" if v is None else f"{v:+.0%}"
+                vol = m.get("vol_3m")
+                vol_s = "n/a" if vol is None else f"{vol:.0%}"
+                d.append(f"- **Cijfers bij aankoop:** momentum 12-1m {fmt(m.get('momentum_12_1'))}, "
+                         f"3m {fmt(m.get('ret_3m'))}, volatiliteit {vol_s}")
+            if f.get("risk"):
+                d.append(f"- **Risico om op te volgen:** {f['risk']}")
+            if f.get("ai_note"):
+                d.append(f"- **AI-filter:** {f['ai_note']}")
+            if news:
+                d.append("- **Recent nieuws:** " + " · ".join(
+                    f"[{h[:80]}]({u})" for _, h, u in news if h))
+            d.append(f"- **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/{sym.replace('.', '-')}) · "
+                     f"[SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName={sym}) · "
+                     f"[Finviz](https://finviz.com/quote.ashx?t={sym.replace('.', '-')})")
+            details += d + [""]
+        trades = self.db.x("SELECT ts, side, symbol, notional, status, reason FROM orders "
+                           "WHERE status != 'dry_run' ORDER BY ts DESC LIMIT 20").fetchall()
+        lines += ["", "## Details per positie", ""] + details
+        lines += ["## Laatste orders", "", "| Tijd (UTC) | Actie | Symbool | Bedrag | Status | Reden |",
+                  "|---|---|---|---:|---|---|"]
+        for ts, side, s, n, st, rs in trades:
+            lines.append(f"| {ts[:16]} | {'koop' if side == 'buy' else 'verkoop'} | {s} | "
+                         f"${n:,.0f} | {st} | {rs} |")
+        out = config.ROOT / path
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text("\n".join(lines) + "\n")
+        return out
 
     def report(self):
         rows = self.db.x("SELECT equity FROM snapshots ORDER BY ts").fetchall()
@@ -397,7 +487,7 @@ class Agent:
 
 def main():
     ap = argparse.ArgumentParser(prog="agent")
-    ap.add_argument("cmd", choices=["status", "once", "tick", "report", "run"])
+    ap.add_argument("cmd", choices=["status", "once", "tick", "report", "overview", "run"])
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--ignore-market-hours", action="store_true")
     a = ap.parse_args()
@@ -408,6 +498,8 @@ def main():
         agent.status()
     elif a.cmd == "report":
         agent.report()
+    elif a.cmd == "overview":
+        print(f"Geschreven: {agent.portfolio_overview()}")
     elif a.cmd == "tick":
         agent.tick(dry_run=a.dry_run)
     elif a.cmd == "once":

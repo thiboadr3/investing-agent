@@ -66,6 +66,7 @@ jobs:
         run: |
           [ -f data/agent.db ] || exit 0
           cp data/agent.db /tmp/agent.db
+          [ -f reports/PORTFOLIO.md ] && cp reports/PORTFOLIO.md /tmp/PORTFOLIO.md || true
           git config user.name "investing-agent"
           git config user.email "actions@users.noreply.github.com"
           if git fetch --depth=1 origin +refs/heads/state:refs/remotes/origin/state 2>/dev/null; then
@@ -74,6 +75,7 @@ jobs:
             git checkout --orphan state && git rm -rf --quiet .
           fi
           cp /tmp/agent.db agent.db
-          git add agent.db
+          [ -f /tmp/PORTFOLIO.md ] && cp /tmp/PORTFOLIO.md PORTFOLIO.md && cp /tmp/PORTFOLIO.md README.md || true
+          git add agent.db $(ls PORTFOLIO.md README.md 2>/dev/null)
           git commit -qm "logboek $(date -u +%FT%TZ)" || exit 0
           git push -q origin state
