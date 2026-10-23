@@ -49,12 +49,17 @@ class Agent:
         return self._analyst
 
     def _ai_budget_check(self):
-        """Harde limiet op het aantal AI-aanroepen per dag (kostenrem)."""
+        """Kostenrem vóór elke AI-poging: max geslaagde (betaalde) aanroepen per dag,
+        max pogingen per dag (vangnet tegen lussen) en het maandbudget."""
         today = datetime.now(NY).strftime("%Y%m%d")
+        ok = self.db.get(f"ai_ok_{today}", 0)
         n = self.db.get(f"ai_calls_{today}", 0)
         limit = self.cfg.ai.get("max_calls_per_day", 12)
-        if n >= limit:
-            raise RuntimeError(f"Kostenrem: max {limit} AI-aanroepen per dag bereikt")
+        attempts = self.cfg.ai.get("max_attempts_per_day", 40)
+        if ok >= limit:
+            raise RuntimeError(f"Kostenrem: max {limit} geslaagde AI-aanroepen per dag bereikt")
+        if n >= attempts:
+            raise RuntimeError(f"Kostenrem: max {attempts} AI-pogingen per dag bereikt")
         month = datetime.now(NY).strftime("%Y%m")
         spent = self.db.get(f"ai_cost_{month}", 0)
         cap = self.cfg.ai.get("max_cost_per_month_usd", 5)
@@ -117,6 +122,8 @@ class Agent:
     # ---------- AI ----------
     def _ai_call(self, prompt: str, label: str) -> str:
         raw = self.analyst.analyse(prompt)
+        okey = f"ai_ok_{datetime.now(NY).strftime('%Y%m%d')}"
+        self.db.set(okey, self.db.get(okey, 0) + 1)
         u = self.analyst.last_usage
         cost = self._ai_cost(u)
         self.db.set("ai_cost_total_usd", round(self.db.get("ai_cost_total_usd", 0) + cost, 4))
@@ -234,7 +241,17 @@ class Agent:
             self.db.x("INSERT OR REPLACE INTO fiches VALUES (?,?,?)",
                       (s, cycle_id, json.dumps(f, ensure_ascii=False)))
 
-        free_w = None   # schaduw 'AI vrij': ook nu al beslissen
+        plan = {"cycle": cycle_id, "built": now(), "weights": final_w, "rule_weights": rule_w,
+                "ai_ok": ai_ok, "free_weights": None,
+                "why": {s: why.get(s, "") for s in final_w}}
+        self.db.set(f"plan_{cycle_id}", plan)
+        top = sorted(final_w.items(), key=lambda kv: -kv[1])
+        self.db.event("INFO", f"Plan {cycle_id}: {len(final_w)} doelposities "
+                              f"({sum(final_w.values()):.0%} belegd), AI-filter "
+                              f"{'OK' if ai_ok else 'MISLUKT'}: "
+                              + ", ".join(f"{s} {w:.1%}" for s, w in top))
+        # schaduw 'AI vrij' NA het bewaren van het plan: mag het echte plan nooit tegenhouden
+        free_w = None
         if cfg.shadows.get("enabled", True):
             try:
                 cur = self.shadows._load("ai_vrij")
@@ -248,15 +265,9 @@ class Agent:
             except Exception as e:
                 self.db.event("WARN", "Schaduw 'AI vrij': geen beslissing vandaag", str(e))
 
-        plan = {"cycle": cycle_id, "built": now(), "weights": final_w, "rule_weights": rule_w,
-                "ai_ok": ai_ok, "free_weights": free_w,
-                "why": {s: why.get(s, "") for s in final_w}}
-        self.db.set(f"plan_{cycle_id}", plan)
-        top = sorted(final_w.items(), key=lambda kv: -kv[1])
-        self.db.event("INFO", f"Plan {cycle_id}: {len(final_w)} doelposities "
-                              f"({sum(final_w.values()):.0%} belegd), AI-filter "
-                              f"{'OK' if ai_ok else 'MISLUKT'}: "
-                              + ", ".join(f"{s} {w:.1%}" for s, w in top))
+        if free_w is not None:
+            plan["free_weights"] = free_w
+            self.db.set(f"plan_{cycle_id}", plan)
         return plan
 
     # ---------- 2. uitvoeren na de opening ----------

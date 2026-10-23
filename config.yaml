@@ -83,7 +83,8 @@ ai:
   model: gemini-3.8-flash     # controleer actuele modelnaam/quota in Google AI Studio
   fallback_models: [gemini-3.5-flash, gemini-3.7-flash, gemini-flash-latest]
   temperature: 0.2
-  max_calls_per_day: 12        # kostenrem (incl. nieuwe pogingen)
+  max_calls_per_day: 12        # kostenrem: max geslaagde (betaalde) AI-aanroepen per dag
+  max_attempts_per_day: 40     # vangnet: max pogingen per dag (mislukte pogingen worden niet aangerekend)
   max_cost_per_month_usd: 5    # harde maandlimiet (geschat); daarna geen AI-analyses meer
   price_per_mtok: {input: 0.75, output: 3.75}   # gemini-3.8-flash t/m 2026; vanaf 2027: 1.50 / 7.50
   news_per_symbol: 3
