@@ -25,6 +25,7 @@ class Risk:
     max_crypto_data_age_hours: float = 36
     max_crypto_total_pct: float = 20
     max_crypto_position_pct: float = 12
+    pause_days: int = 28               # kalenderdagen pauze na max terugval (≈20 beursdagen)
 
 
 @dataclass(frozen=True)

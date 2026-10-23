@@ -157,3 +157,20 @@ def test_shadow_rebalance_costs_and_value(tmp_path):
     assert out["value"] > 10_000 and out["return"] > 0
     sh.rebalance("x", {}, {"AAPL": 110, "BTC/USD": 50_000})   # alles verkopen
     assert sh._load("x")["h"] == {}
+
+
+def test_buffer_keeps_held_position():
+    snaps = {f"S{i}": snap(f"S{i}", mom=1 - i / 20) for i in range(8)}
+    w0, _ = rules.stock_targets(snaps, 0.95, top_n=3, cap=0.5)
+    assert set(w0) == {"S0", "S1", "S2"}
+    # S5 al in bezit: zonder buffer valt hij weg, met buffer 3 (top 6) blijft hij
+    w1, _ = rules.stock_targets(snaps, 0.95, top_n=3, cap=0.5, held={"S5"}, buffer=0)
+    w2, _ = rules.stock_targets(snaps, 0.95, top_n=3, cap=0.5, held={"S5"}, buffer=3)
+    assert "S5" not in w1 and "S5" in w2 and len(w2) == 3
+
+
+def test_band_skips_small_adjustments():
+    # bestaande positie 8% -> doel 10%: afwijking 2% < band 3% -> geen order; nieuwe positie wel
+    props = strategy.proposals({"AAPL": 0.10, "SPY": 0.05}, 10_000, {"AAPL": 800},
+                               {"AAPL", "SPY"}, 100, band=0.03)
+    assert [(p.symbol, p.side) for p in props] == [("SPY", "buy")]

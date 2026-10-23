@@ -94,3 +94,21 @@ def test_portfolio_overview_renders(tmp_path, monkeypatch):
     md = out.read_text()
     assert "Apple Inc." in md and "Naam BRK.B" in md and "Sterke trend." in md
     assert "+10.0%" in md and "finance.yahoo.com/quote/BRK-B" in md and "| koop | AAPL |" in md
+
+
+def test_drawdown_pause_resets_peak(tmp_path):
+    from agent.broker import Account
+    a = m.Agent.__new__(m.Agent)
+    a.cfg = config.load()
+    a.db = DB(tmp_path / "t.db")
+    eq = {"v": 10_000}
+    a.broker = SimpleNamespace(account=lambda: Account(eq["v"], eq["v"], False, "ACTIVE"),
+                               positions=lambda: {})
+    a.snapshot()
+    eq["v"] = 8_400                                   # -16%: pauze start
+    _, _, peak = a.snapshot()
+    assert peak == 10_000 and a.db.get("pause_since")
+    old = (datetime.now(m.NY).date() - timedelta(days=a.cfg.risk.pause_days)).isoformat()
+    a.db.set("pause_since", old)                      # pauze verstreken
+    _, _, peak = a.snapshot()
+    assert peak == 8_400 and a.db.get("pause_since") is None

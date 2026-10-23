@@ -49,6 +49,8 @@ crypto:
 strategy:
   target_invested_pct: 95     # rest blijft cash
   stock_top_n: 10             # sterkste N aandelen/ETF's
+  hold_buffer: 10             # bestaande positie houden zolang ze in top (N + buffer) staat (minder omzet)
+  rebalance_band_pct: 3       # bestaande posities pas bijsturen bij > 3% afwijking (backtest: veel minder kosten)
   trend_sma_days: 200         # enkel bezitten boven dit gemiddelde
   momentum_months: 12         # momentum over 12 maanden, laatste maand uitgezonderd
   crypto_momentum_days: 90    # crypto: positief rendement over 90 dagen vereist
@@ -62,6 +64,7 @@ shadows:
 
 risk:
   max_drawdown_pct: 15        # vanaf piek: geen nieuwe aankopen meer (pauzestand)
+  pause_days: 28              # na zoveel dagen pauze wordt de piek gereset (anders eeuwig geblokkeerd)
   max_position_pct: 10        # max gewicht per aandeel/ETF
   min_cash_pct: 5             # minimale cashbuffer
   max_orders_per_day: 16

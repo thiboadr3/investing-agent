@@ -71,6 +71,21 @@ class Agent:
         acct = self.broker.account()
         pos = self.broker.positions()
         peak = max(self.db.get("peak_equity", acct.equity), acct.equity)
+        # pauzeregel: bij >= max terugval geen aankopen; na `pause_days` kalenderdagen wordt de
+        # piek gereset. Zonder reset blijft een portefeuille in cash voor altijd geblokkeerd.
+        dd = risk.drawdown_pct(acct.equity, peak)
+        pause = self.db.get("pause_since")
+        today = datetime.now(NY).date()
+        if pause:
+            if (today - datetime.fromisoformat(pause).date()).days >= self.cfg.risk.pause_days:
+                self.db.event("INFO", f"Pauze voorbij: piek gereset van ${peak:,.0f} "
+                                      f"naar ${acct.equity:,.0f}")
+                peak = acct.equity
+                self.db.set("pause_since", None)
+        elif dd >= self.cfg.risk.max_drawdown_pct:
+            self.db.set("pause_since", today.isoformat())
+            self.db.event("WARN", f"Terugval {dd:.1f}%: pauze voor nieuwe aankopen "
+                                  f"({self.cfg.risk.pause_days} dagen)")
         self.db.set("peak_equity", peak)
         self.db.x("INSERT INTO snapshots VALUES (?,?,?,?,?)",
                   (now(), acct.equity, acct.cash, peak,
@@ -157,10 +172,11 @@ class Agent:
                 ctx.cash -= p.notional
                 ctx.position_values[p.symbol] = ctx.position_values.get(p.symbol, 0) + p.notional
 
-    def _rule_targets(self, snaps):
+    def _rule_targets(self, snaps, held=None):
         r = self.cfg.risk
         return rules.targets(snaps, self.cfg.strategy, r.max_position_pct / 100,
-                             r.max_crypto_total_pct / 100, r.max_crypto_position_pct / 100)
+                             r.max_crypto_total_pct / 100, r.max_crypto_position_pct / 100,
+                             held)
 
     # ---------- 1. onderzoek vóór de opening ----------
     def build_plan(self) -> dict:
@@ -175,7 +191,7 @@ class Agent:
             news += self.data.news(list(cfg.crypto), cfg.ai["news_lookback_hours"], 20)
         self.store_news(news)
 
-        rule_w, why = self._rule_targets(snaps)       # regels bepalen wat en hoeveel
+        rule_w, why = self._rule_targets(snaps, set(pos))   # regels bepalen wat en hoeveel
         final_w, ai_ok, notes, view, raw = dict(rule_w), True, [], "", None
         if cfg.strategy.get("ai_filter", True) and rule_w:   # AI mag enkel verkleinen
             try:
@@ -255,7 +271,8 @@ class Agent:
         ctx = self._risk_ctx(acct, pos, peak, clock, snaps, dry_run, ignore_hours)
         props = strategy.proposals(plan["weights"], acct.equity, ctx.position_values,
                                    set(cfg.all_symbols), r.min_order_usd,
-                                   allow_buys=plan["ai_ok"])
+                                   allow_buys=plan["ai_ok"],
+                                   band=cfg.strategy.get("rebalance_band_pct", 0) / 100)
         self.db.event("INFO", f"Uitvoering {cycle_id}: {len(props)} orderkandidaten "
                               f"(plan van {plan['built']})")
         self._execute(props, ctx, cycle_id, dry_run, "regels+ai" if plan["ai_ok"] else "regels")

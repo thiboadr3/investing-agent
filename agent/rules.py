@@ -33,8 +33,12 @@ def _inverse_vol(cands: list[Snapshot], budget: float, cap: float) -> dict[str, 
 
 
 def stock_targets(snaps: dict[str, Snapshot], budget: float, top_n: int,
-                  cap: float) -> tuple[dict[str, float], dict[str, str]]:
-    """Aandelen/ETF's: boven 200d-gemiddelde en positief 12-1 momentum; top N op momentum."""
+                  cap: float, held: set[str] | None = None,
+                  buffer: int = 0) -> tuple[dict[str, float], dict[str, str]]:
+    """Aandelen/ETF's: boven 200d-gemiddelde en positief 12-1 momentum; top N op momentum.
+
+    Buffer: een positie die je al bezit, blijft zolang ze in de top (N + buffer) staat.
+    Dat voorkomt dat aandelen rond plaats N elke dag gekocht en weer verkocht worden."""
     why: dict[str, str] = {}
     eligible = []
     for s in snaps.values():
@@ -47,9 +51,13 @@ def stock_targets(snaps: dict[str, Snapshot], budget: float, top_n: int,
         else:
             eligible.append(s)
     eligible.sort(key=lambda s: s.mom_12_1, reverse=True)
-    for s in eligible[top_n:]:
-        why[s.symbol] = f"momentum {s.mom_12_1:+.0%}, buiten top {top_n}"
-    chosen = eligible[:top_n]
+    held = held or set()
+    keep = [s for s in eligible[:top_n + buffer] if s.symbol in held][:top_n]
+    new = [s for s in eligible if s not in keep][:top_n - len(keep)]
+    chosen = sorted(keep + new, key=lambda s: s.mom_12_1, reverse=True)
+    for s in eligible:
+        if s not in chosen:
+            why[s.symbol] = f"momentum {s.mom_12_1:+.0%}, buiten top {top_n}"
     w = _inverse_vol(chosen, budget, cap)
     for s in chosen:
         why[s.symbol] = f"trend OK, momentum {s.mom_12_1:+.0%}, vol {s.vol_3m:.0%}"
@@ -80,11 +88,12 @@ def crypto_targets(snaps: dict[str, Snapshot], max_total: float, cap: float,
 
 
 def targets(snaps: dict[str, Snapshot], strat: dict, stock_cap: float,
-            crypto_total: float, crypto_cap: float) -> tuple[dict[str, float], dict[str, str]]:
+            crypto_total: float, crypto_cap: float,
+            held: set[str] | None = None) -> tuple[dict[str, float], dict[str, str]]:
     invested = strat.get("target_invested_pct", 95) / 100
     cw, cwhy = crypto_targets(snaps, crypto_total, crypto_cap)
     sw, swhy = stock_targets(snaps, invested - sum(cw.values()), strat.get("stock_top_n", 10),
-                             stock_cap)
+                             stock_cap, held, strat.get("hold_buffer", 0))
     return {**sw, **cw}, {**swhy, **cwhy}
 
 
