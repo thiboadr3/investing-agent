@@ -10,14 +10,16 @@ AI-gedreven agent die een **paper**-portefeuille bij Alpaca beheert. Geen echt g
    - *Aandelen/ETF's*: enkel boven het 200-daagse gemiddelde én met positief 12-1-maandsmomentum; de sterkste 10; gewicht omgekeerd evenredig met volatiliteit, max 10 % per positie.
    - *Crypto*: per munt enkel bij trend (boven 200d-gemiddelde en positief 3m-rendement). Beide munten in trend → 20 %, één → 10 %, geen → 0 %. Max 12 % per munt.
    - Samen 95 % belegd, 5 % cash.
-3. **AI-filter (Gemini)** leest het nieuws en mag posities enkel **halveren of schrappen** bij een concrete rode vlag (nooit vergroten). Faalt de AI, dan worden er die dag enkel verkopen gedaan.
+3. **AI-filter (Gemini) met debat** — per positie eerst een argument vóór en tegen, dan pas de beslissing; mag enkel **halveren of schrappen** bij een concrete rode vlag (nooit vergroten). Levert ook de bedrijfsfiche. Krijgt de **lessen** uit eerdere weekevaluaties als context. Faalt de AI, dan worden er die dag enkel verkopen gedaan.
 4. **Risicolaag** (`agent/risk.py`) weigert elke order die een regel schendt: noodstop, accountstatus, beurs dicht (aandelen), symbool niet toegelaten, open order, max orders/dag, te kleine order, verouderde data, ≥ 15 % terugval (geen aankopen), positie- en crypto-limieten, cashbuffer, geen shorts.
 5. **Broker** — enkel paperorders, vaste order-ID's (geen dubbele orders na herstart); crypto met GTC-orders.
 6. **Buiten beursuren** (elke 4 uur, ook weekend): crypto-uitstapcontrole — verkoopt een munt als de trend breekt, koopt nooit.
 7. **Schaduwportefeuilles** (virtueel, niet verhandeld) om te vergelijken: *regels zonder AI-filter*, *50 % crypto / 50 % aandelen*, *AI volledig vrij*, *SPY kopen en houden*. Met geschatte kosten (aandelen 0,05 %, crypto 0,25 % per transactie).
 8. **Rapport** — na elke run in de GitHub Actions-samenvatting en via `python -m agent report`.
 9. **Portefeuilleoverzicht** — per positie: wat het bedrijf doet, waarom gekozen (cijfers + AI-fiche), risico, resultaat sinds aankoop, recent nieuws en links. Na elke run bijgewerkt op de branch `state`: [PORTFOLIO.md](https://github.com/thiboadr3/investing-agent/blob/state/PORTFOLIO.md). Lokaal: `python -m agent overview`.
-10. **Logboek** — alles in SQLite (`agent.db`): beslissingen + redenen, AI-aanpassingen, orders, weigeringen, nieuws, snapshots, schaduwwaarden, kosten.
+10. **Geheugen** — tradedagboek (elke afgesloten trade: instap- en uitstapreden, resultaat, SPY zelfde periode) en elke vrijdag na sluiting een **weekevaluatie** met lessen en te backtesten hypotheses: [WEEKLY.md](https://github.com/thiboadr3/investing-agent/blob/state/WEEKLY.md). Regels veranderen nooit automatisch.
+11. **Backtest** — `python tools/backtest.py fetch` en `run`: zelfde regels op 10 jaar data, varianten, rapport in `research/backtest_report.md`.
+12. **Logboek** — alles in SQLite (`agent.db`): beslissingen + redenen, AI-aanpassingen, orders, weigeringen, nieuws, snapshots, schaduwwaarden, kosten.
 
 ## Installatie (lokaal, Mac)
 

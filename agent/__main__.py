@@ -191,12 +191,16 @@ class Agent:
             news += self.data.news(list(cfg.crypto), cfg.ai["news_lookback_hours"], 20)
         self.store_news(news)
 
+        if cfg.benchmark in snaps:
+            self.db.set(f"spy_{cycle_id}", snaps[cfg.benchmark].price)
         rule_w, why = self._rule_targets(snaps, set(pos))   # regels bepalen wat en hoeveel
-        final_w, ai_ok, notes, view, raw = dict(rule_w), True, [], "", None
+        final_w, ai_ok, notes, view, raw, fiches = dict(rule_w), True, [], "", None, {}
         if cfg.strategy.get("ai_filter", True) and rule_w:   # AI mag enkel verkleinen
             try:
-                raw = self._ai_call(ai.filter_prompt(snaps, rule_w, news), "filter")
-                factors, cf, notes, view = ai.parse_filter(raw, set(rule_w))
+                lessons = [x for (x,) in self.db.x(
+                    "SELECT lesson FROM lessons ORDER BY ts DESC LIMIT 8").fetchall()]
+                raw = self._ai_call(ai.filter_prompt(snaps, rule_w, news, lessons), "filter+debat")
+                factors, cf, notes, view, fiches = ai.parse_filter(raw, set(rule_w))
                 for s in final_w:
                     final_w[s] = round(final_w[s] * factors.get(s, 1.0)
                                        * (cf if config.is_crypto(s) else 1.0), 4)
@@ -209,30 +213,26 @@ class Agent:
         for s in sorted(set(rule_w) | set(final_w) | set(pos)):
             n = ai_note.get(s)
             action = "drop" if n and n["factor"] == 0 else "halve" if n else "keep"
+            fi = fiches.get(s, {})
             self.db.x("INSERT INTO decisions VALUES (?,?,?,?,?,?,?,?,?)",
                       (now(), cycle_id, s, action, final_w.get(s, 0.0), None,
-                       json.dumps([why.get(s, "")], ensure_ascii=False),
-                       json.dumps([n["reason"]] if n else [], ensure_ascii=False), raw))
+                       json.dumps([why.get(s, "")] + ([fi["bull"]] if fi.get("bull") else []),
+                                  ensure_ascii=False),
+                       json.dumps(([fi["bear"]] if fi.get("bear") else [])
+                                  + ([n["reason"]] if n else []), ensure_ascii=False), raw))
         if view:
             self.db.event("INFO", f"AI-marktbeeld: {view[:300]}")
 
-        # fiche per positie (wat doet het bedrijf, waarom gekozen, risico) — niet kritisch
-        if final_w:
-            metrics = {s: {"momentum_12_1": snaps[s].mom_12_1, "ret_3m": snaps[s].ret_3m,
-                           "vol_3m": snaps[s].vol_3m, "price": snaps[s].price}
-                       for s in final_w if s in snaps}
-            try:
-                fiches = ai.parse_explain(self._ai_call(
-                    ai.explain_prompt(snaps, final_w, why, news), "uitleg"), set(final_w))
-            except Exception as e:
-                fiches = {}
-                self.db.event("WARN", "Uitleg per positie niet gelukt", str(e))
-            for s in final_w:
-                f = fiches.get(s, {})
-                f.update({"rule": why.get(s, ""), "ai_note": (ai_note.get(s) or {}).get("reason", ""),
-                          "weight": final_w[s], "metrics": metrics.get(s, {})})
-                self.db.x("INSERT OR REPLACE INTO fiches VALUES (?,?,?)",
-                          (s, cycle_id, json.dumps(f, ensure_ascii=False)))
+        # fiche per positie (wat doet het bedrijf, voor/tegen, risico) uit dezelfde AI-aanroep
+        for s in final_w:
+            f = dict(fiches.get(s, {}))
+            f.update({"rule": why.get(s, ""), "ai_note": (ai_note.get(s) or {}).get("reason", ""),
+                      "weight": final_w[s],
+                      "metrics": {"momentum_12_1": snaps[s].mom_12_1, "ret_3m": snaps[s].ret_3m,
+                                  "vol_3m": snaps[s].vol_3m, "price": snaps[s].price}
+                      if s in snaps else {}})
+            self.db.x("INSERT OR REPLACE INTO fiches VALUES (?,?,?)",
+                      (s, cycle_id, json.dumps(f, ensure_ascii=False)))
 
         free_w = None   # schaduw 'AI vrij': ook nu al beslissen
         if cfg.shadows.get("enabled", True):
@@ -353,8 +353,12 @@ class Agent:
         """
         sch = self.cfg.schedule
         clock = self.broker.market_clock()
-        self.snapshot()
+        _, pos, _ = self.snapshot() or (None, {}, None)
         self.reconcile()
+        try:
+            self.update_journal(pos)
+        except Exception as e:
+            self.db.event("WARN", "Dagboek niet bijgewerkt", str(e))
         today = datetime.now(NY).strftime("%Y%m%d")
         plan = self.db.get(f"plan_{today}")
         done = self.db.get("last_analysis_dry" if dry_run else "last_analysis") == today
@@ -383,11 +387,91 @@ class Agent:
             else:
                 print(f"Beurs gesloten (volgende opening {clock.next_open}).")
             self.crypto_exit_check(dry_run)
+            self.weekly_review()
         self.report()
         try:
             self.portfolio_overview()
         except Exception as e:
             self.db.event("WARN", "Portefeuilleoverzicht niet gemaakt", str(e))
+
+    # ---------- geheugen: tradedagboek ----------
+    def update_journal(self, pos: dict):
+        """Houdt open posities bij; bij een volledige verkoop komt er een dagboekregel."""
+        today = datetime.now(NY).strftime("%Y-%m-%d")
+        open_pos = self.db.get("open_positions", {}) or {}
+        for s in pos:
+            if s not in open_pos:
+                f = self.db.x("SELECT data FROM fiches WHERE symbol=? ORDER BY day DESC LIMIT 1",
+                              (s,)).fetchone()
+                open_pos[s] = {"opened": today,
+                               "reason": (json.loads(f[0]).get("rule", "") if f else "")}
+        for s in [s for s in open_pos if s not in pos]:
+            o = open_pos.pop(s)
+            q = lambda side: self.db.x(
+                "SELECT COALESCE(SUM(notional),0) FROM orders WHERE symbol=? AND side=? AND "
+                "status NOT IN ('dry_run','canceled','rejected','expired') AND ts >= ?",
+                (s, side, o["opened"])).fetchone()[0]
+            buy, sell = q("buy"), q("sell")
+            ex = self.db.x("SELECT reasons_for, action FROM decisions WHERE symbol=? "
+                           "ORDER BY ts DESC LIMIT 1", (s,)).fetchone()
+            exit_reason = (("AI: " + ex[1] + " · ") if ex and ex[1] != "keep" else "") + \
+                          (json.loads(ex[0])[0] if ex and ex[0] else "")
+            spy0 = self.db.get(f"spy_{o['opened'].replace('-', '')}")
+            spy1 = self.db.get(f"spy_{today.replace('-', '')}")
+            spy_pct = (spy1 / spy0 - 1) if spy0 and spy1 else None
+            days = (datetime.fromisoformat(today) - datetime.fromisoformat(o["opened"])).days
+            self.db.x("INSERT INTO journal VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                      (s, o["opened"], today, buy, sell, sell - buy,
+                       (sell / buy - 1) if buy else None, days, o.get("reason", ""),
+                       exit_reason, spy_pct))
+            self.db.event("INFO", f"Dagboek: {s} gesloten na {days} d, "
+                                  f"resultaat ${sell - buy:+,.0f}")
+        self.db.set("open_positions", open_pos)
+
+    # ---------- geheugen: wekelijkse evaluatie ----------
+    def weekly_review(self, force: bool = False, path="reports/WEEKLY.md"):
+        nyt = datetime.now(NY)
+        week = nyt.strftime("%G-W%V")
+        if not force and (self.db.get("last_review") == week or nyt.weekday() != 4
+                          or (nyt.hour, nyt.minute) < (16, 15)):
+            return
+        acct, pos, peak = self.snapshot()
+        jr = self.db.x("SELECT symbol, opened, closed, pnl, pnl_pct, days, entry_reason, "
+                       "exit_reason, spy_pct FROM journal ORDER BY closed DESC LIMIT 25").fetchall()
+        lines = [f"Datum: {nyt:%Y-%m-%d}. Portefeuille ${acct.equity:,.0f} (cash ${acct.cash:,.0f}), "
+                 f"terugval vanaf piek {risk.drawdown_pct(acct.equity, peak):.1f}%.", "",
+                 "OPEN POSITIES (symbool | waarde | resultaat sinds aankoop):"]
+        lines += [f"{p.symbol} | ${p.market_value:,.0f} | {p.unrealized_plpc:+.1%}"
+                  for p in sorted(pos.values(), key=lambda p: -p.market_value)]
+        lines += ["", "AFGESLOTEN TRADES (symbool | open | dicht | resultaat | dagen | instap | uitstap | SPY zelfde periode):"]
+        lines += [f"{r[0]} | {r[1]} | {r[2]} | ${r[3]:+,.0f} ({'' if r[4] is None else f'{r[4]:+.1%}'}) | "
+                  f"{r[5]} | {r[6]} | {r[7]} | {'' if r[8] is None else f'{r[8]:+.1%}'}" for r in jr] or ["(nog geen)"]
+        lines += ["", "AI-AANPASSINGEN (laatste 30): " + ", ".join(
+            f"{s} {a}" for s, a in self.db.x("SELECT symbol, action FROM decisions WHERE action != "
+                                             "'keep' ORDER BY ts DESC LIMIT 30").fetchall()) or "geen"]
+        rej = self.db.x("SELECT rule, COUNT(*) FROM rejections GROUP BY rule").fetchall()
+        lines += ["", "GEWEIGERDE ORDERS: " + (", ".join(f"{r} ×{n}" for r, n in rej) or "geen"), "",
+                  "SCHADUWPORTEFEUILLES:"]
+        lines += [f"{x['label']}: {x['return']:+.2%} (max daling {x['max_drawdown']:.1%})"
+                  for x in self.shadows.summary()]
+        facts = "\n".join(lines)
+        try:
+            rv = ai.parse_review(self._ai_call(ai.review_prompt(facts), "weekevaluatie"))
+        except Exception as e:
+            self.db.event("WARN", "Weekevaluatie mislukt", str(e))
+            return
+        for les in rv["lessons"]:
+            self.db.x("INSERT INTO lessons VALUES (?,?,?)", (now(), week, les))
+        self.db.set("last_review", week)
+        self.db.set(f"review_{week}", rv)
+        md = [f"## Week {week} ({nyt:%d-%m-%Y})", "", rv["summary"], "", "**Lessen** (gaan als context naar de AI-filter):"]
+        md += [f"- {x}" for x in rv["lessons"]] + ["", "**Hypotheses om te backtesten** (niet automatisch doorgevoerd):"]
+        md += [f"- {x}" for x in rv["hypotheses"]] + [""]
+        out = config.ROOT / path
+        out.parent.mkdir(parents=True, exist_ok=True)
+        prev = out.read_text().split("\n", 2)[2] if out.exists() else ""
+        out.write_text("# Investing Agent — weekevaluaties\n\n" + "\n".join(md) + "\n" + prev)
+        self.db.event("INFO", f"Weekevaluatie {week}: {len(rv['lessons'])} lessen")
 
     def portfolio_overview(self, path="reports/PORTFOLIO.md"):
         """Leesbaar overzicht per positie: wat, waarom, risico, resultaat, nieuws, links."""
@@ -426,7 +510,11 @@ class Agent:
             d = [f"### {sym}", f"**{name}**" + (f" — gekocht sinds {first[:10]}" if first else ""), ""]
             if f.get("what"):
                 d.append(f"- **Wat:** {f['what']}")
-            d.append(f"- **Waarom gekozen:** {f.get('why') or f.get('rule', '—')}")
+            d.append(f"- **Waarom gekozen (regels):** {f.get('rule') or '—'}")
+            if f.get("bull") or f.get("why"):
+                d.append(f"- **Argument voor:** {f.get('bull') or f.get('why')}")
+            if f.get("bear"):
+                d.append(f"- **Argument tegen:** {f['bear']}")
             if m:
                 fmt = lambda v: "n/a" if v is None else f"{v:+.0%}"
                 vol = m.get("vol_3m")
@@ -504,7 +592,7 @@ class Agent:
 
 def main():
     ap = argparse.ArgumentParser(prog="agent")
-    ap.add_argument("cmd", choices=["status", "once", "tick", "report", "overview", "run"])
+    ap.add_argument("cmd", choices=["status", "once", "tick", "report", "overview", "review", "run"])
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--ignore-market-hours", action="store_true")
     a = ap.parse_args()
@@ -515,6 +603,8 @@ def main():
         agent.status()
     elif a.cmd == "report":
         agent.report()
+    elif a.cmd == "review":
+        agent.weekly_review(force=True)
     elif a.cmd == "overview":
         print(f"Geschreven: {agent.portfolio_overview()}")
     elif a.cmd == "tick":

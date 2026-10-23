@@ -23,6 +23,10 @@ CREATE TABLE IF NOT EXISTS news (
 CREATE TABLE IF NOT EXISTS events (
   ts TEXT, level TEXT, message TEXT, detail TEXT);
 CREATE TABLE IF NOT EXISTS state (key TEXT PRIMARY KEY, value TEXT);
+CREATE TABLE IF NOT EXISTS lessons (ts TEXT, week TEXT, lesson TEXT);
+CREATE TABLE IF NOT EXISTS journal (
+  symbol TEXT, opened TEXT, closed TEXT, entry_value REAL, exit_value REAL, pnl REAL,
+  pnl_pct REAL, days INTEGER, entry_reason TEXT, exit_reason TEXT, spy_pct REAL);
 CREATE TABLE IF NOT EXISTS fiches (
   symbol TEXT, day TEXT, data TEXT, PRIMARY KEY (symbol, day));
 """

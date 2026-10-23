@@ -112,3 +112,37 @@ def test_drawdown_pause_resets_peak(tmp_path):
     a.db.set("pause_since", old)                      # pauze verstreken
     _, _, peak = a.snapshot()
     assert peak == 8_400 and a.db.get("pause_since") is None
+
+
+def test_journal_records_closed_trade(tmp_path):
+    from agent.broker import Position
+    a = m.Agent.__new__(m.Agent)
+    a.cfg = config.load()
+    a.db = DB(tmp_path / "t.db")
+    a.db.set("open_positions", {"AAPL": {"opened": "2026-10-01", "reason": "trend OK"}})
+    a.db.x("INSERT INTO orders VALUES (?,?,?,?,?,?,?,?,?)",
+           ("2026-10-01T13:40", "b1", "AAPL", "buy", 1000, 5, "filled", "x", "regels"))
+    a.db.x("INSERT INTO orders VALUES (?,?,?,?,?,?,?,?,?)",
+           ("2026-10-20T13:40", "s1", "AAPL", "sell", 1100, 5, "filled", "x", "regels"))
+    a.update_journal({"MSFT": Position("MSFT", 1, 500)})
+    row = a.db.x("SELECT symbol, pnl, entry_reason FROM journal").fetchone()
+    assert row == ("AAPL", 100, "trend OK")
+    assert set(a.db.get("open_positions")) == {"MSFT"}
+
+
+def test_weekly_review_stores_lessons(tmp_path, monkeypatch):
+    from agent.broker import Account
+    from agent.shadow import Shadows
+    a = m.Agent.__new__(m.Agent)
+    a.cfg = config.load()
+    a.db = DB(tmp_path / "t.db")
+    a.shadows = Shadows(a.db, {})
+    a.snapshot = lambda: (Account(10_000, 1_000, False, "ACTIVE"), {}, 10_000)
+    a._ai_call = lambda prompt, label: ('{"summary":"Rustige week.","lessons":["Les 1","Les 2"],'
+                                        '"hypotheses":["Test top 5"]}')
+    monkeypatch.setattr(config, "ROOT", tmp_path)
+    a.weekly_review(force=True)
+    a.weekly_review(force=True)
+    assert [x for (x,) in a.db.x("SELECT lesson FROM lessons")] == ["Les 1", "Les 2"] * 2
+    md = (tmp_path / "reports" / "WEEKLY.md").read_text()
+    assert md.startswith("# Investing Agent — weekevaluaties") and md.count("## Week") == 2

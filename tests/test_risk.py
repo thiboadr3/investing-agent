@@ -123,8 +123,20 @@ def test_filter_can_only_reduce():
            '{"symbol":"MSFT","factor":0.0,"reason":"niet in doel"},'
            '{"symbol":"SPY","factor":3,"reason":"meer!"},'
            '{"symbol":"BTC/USD","factor":0.1,"reason":"hack"}]}')
-    f, cf, notes, _ = ai.parse_filter(raw, {"AAPL", "SPY", "BTC/USD"})
+    f, cf, notes, _, _ = ai.parse_filter(raw, {"AAPL", "SPY", "BTC/USD"})
     assert f == {"AAPL": 0.5, "BTC/USD": 0.0} and cf == 0.5
+
+
+def test_filter_debate_format_gives_fiches():
+    raw = ('{"market_view":"ok","positions":['
+           '{"symbol":"AAPL","company":"Apple Inc.","what":"iPhones","bull":"sterke trend",'
+           '"bear":"dure waardering","risk":"China","factor":1.0},'
+           '{"symbol":"XOM","company":"Exxon","bull":"olie","bear":"olieprijs","risk":"OPEC",'
+           '"factor":0.5,"reason":"onderzoek naar boekhouding"},'
+           '{"symbol":"TSLA","company":"x","factor":0}]}')
+    f, cf, notes, view, fiches = ai.parse_filter(raw, {"AAPL", "XOM"})
+    assert f == {"XOM": 0.5} and cf == 1.0 and "TSLA" not in fiches
+    assert fiches["AAPL"]["bear"] == "dure waardering" and notes[0]["reason"].startswith("onderzoek")
 
 
 def test_free_parse_caps_and_normalises():
