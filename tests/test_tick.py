@@ -17,6 +17,7 @@ def make_agent(tmp_path, clock):
     a.reconcile = lambda: None
     a.report = lambda: None
     a.crypto_exit_check = lambda dry_run: None
+    a.weekly_review = lambda: None
 
     def build_plan():
         a.calls.append("plan")

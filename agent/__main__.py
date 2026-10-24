@@ -17,7 +17,7 @@ import argparse
 import json
 import os
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from . import ai, config, risk, rules, strategy
@@ -442,9 +442,17 @@ class Agent:
     # ---------- geheugen: wekelijkse evaluatie ----------
     def weekly_review(self, force: bool = False, path="reports/WEEKLY.md"):
         nyt = datetime.now(NY)
-        week = nyt.strftime("%G-W%V")
-        if not force and (self.db.get("last_review") == week or nyt.weekday() != 4
-                          or (nyt.hour, nyt.minute) < (16, 15)):
+        # de evaluatie hoort bij de laatste afgesloten vrijdag; wordt ze gemist (geen run na
+        # de sluiting), dan haalt de eerstvolgende run (weekend of maandag-donderdag) ze in
+        wd = nyt.weekday()
+        if wd == 4 and (nyt.hour, nyt.minute) >= (16, 15):
+            friday = nyt.date()
+        elif wd >= 5:
+            friday = nyt.date() - timedelta(days=wd - 4)
+        else:
+            friday = nyt.date() - timedelta(days=wd + 3)
+        week = friday.strftime("%G-W%V")
+        if not force and self.db.get("last_review") == week:
             return
         acct, pos, peak = self.snapshot()
         jr = self.db.x("SELECT symbol, opened, closed, pnl, pnl_pct, days, entry_reason, "
