@@ -1,21 +1,21 @@
 # Investing Agent — portefeuille (paper)
 
-_Bijgewerkt 2026-10-23 14:46 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
+_Bijgewerkt 2026-10-24 02:38 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
 
-**Waarde:** $9,990.07 · **cash:** $500.10 · **terugval vanaf piek:** 0.1%
+**Waarde:** $10,006.73 · **cash:** $500.10 · **terugval vanaf piek:** 0.0%
 
 | Symbool | Bedrijf | Gewicht | Waarde | Aankoopprijs | Resultaat |
 |---|---|---:|---:|---:|---:|
-| [CVX](#cvx) | Chevron Corporation | 10.1% | $1,009 | $230.75 | +0.9% ($+9) |
-| [XOM](#xom) | Exxon Mobil Corporation | 10.1% | $1,005 | $181.64 | +0.5% ($+5) |
-| [XLE](#xle) | Energy Select Sector SPDR Fund | 10.1% | $1,005 | $68.88 | +0.5% ($+5) |
-| [JNJ](#jnj) | Johnson & Johnson | 10.0% | $999 | $263.43 | -0.1% ($-1) |
-| [QQQ](#qqq) | Invesco QQQ Trust | 10.0% | $999 | $706.06 | -0.1% ($-1) |
-| [AAPL](#aapl) | Apple Inc. | 10.0% | $996 | $347.68 | -0.4% ($-4) |
-| [KO](#ko) | The Coca-Cola Company | 9.9% | $993 | $93.47 | -0.7% ($-7) |
-| [XLK](#xlk) | Technology Select Sector SPDR Fund | 9.7% | $973 | $183.38 | +0.0% ($+0) |
-| [LLY](#lly) | Eli Lilly and Company | 8.1% | $812 | $1,277.77 | -1.5% ($-12) |
-| [NVDA](#nvda) | NVIDIA Corporation | 7.0% | $699 | $212.97 | -0.5% ($-4) |
+| [CVX](#cvx) | Chevron Corporation | 10.1% | $1,011 | $230.75 | +1.1% ($+11) |
+| [XOM](#xom) | Exxon Mobil Corporation | 10.1% | $1,009 | $181.64 | +0.9% ($+9) |
+| [XLE](#xle) | Energy Select Sector SPDR Fund | 10.1% | $1,007 | $68.88 | +0.7% ($+7) |
+| [JNJ](#jnj) | Johnson & Johnson | 10.0% | $1,001 | $263.43 | +0.1% ($+1) |
+| [AAPL](#aapl) | Apple Inc. | 10.0% | $1,000 | $347.68 | +0.0% ($+0) |
+| [QQQ](#qqq) | Invesco QQQ Trust | 10.0% | $998 | $706.06 | -0.2% ($-2) |
+| [KO](#ko) | The Coca-Cola Company | 9.9% | $992 | $93.47 | -0.8% ($-8) |
+| [XLK](#xlk) | Technology Select Sector SPDR Fund | 9.7% | $972 | $183.38 | -0.1% ($-1) |
+| [LLY](#lly) | Eli Lilly and Company | 8.2% | $821 | $1,277.77 | -0.3% ($-3) |
+| [NVDA](#nvda) | NVIDIA Corporation | 7.0% | $696 | $212.97 | -0.9% ($-7) |
 
 ## Details per positie
 
@@ -65,18 +65,6 @@ _Bijgewerkt 2026-10-23 14:46 New York-tijd. Paperrekening, geen echt geld. Geen 
 - **Recent nieuws:** [Johnson & Johnson's Icotrokinra Hydrochloride Receives Medicines And Healthcare ](https://www.benzinga.com/government/26/10/62561591/johnson-johnson-s-icotrokinra-hydrochloride-receives-medicines-and-healthcare-products-regulatory-ag) · [UK Regulator Approves Johnson & Johnson's Oral Psoriasis Treatment](https://www.marketscreener.com/news/uk-regulator-oks-j-j-unit-s-plaque-psoriasis-treatment-ce785cdfdb89ff25) · [European Commission Approves TECVAYLI® Indication Extension for Multiple Myeloma](https://www.manilatimes.net/2026/10/23/tmt-newswire/globenewswire/european-commission-approves-johnson-johnsons-tecvayli-teclistamab-monotherapy-for-relapsedrefractory-multiple-myeloma-expanding-treatment-options-from-first-relapse/2452705)
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/JNJ) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=JNJ) · [Finviz](https://finviz.com/quote.ashx?t=JNJ)
 
-### QQQ
-**Invesco QQQ Trust** — gekocht sinds 2026-10-23
-
-- **Wat:** Exchange-Traded Fund dat de Nasdaq-100 index volgt, met een zware weging in toonaangevende technologie- en innovatiebedrijven.
-- **Waarom gekozen (regels):** trend OK, momentum +23%, vol 19%
-- **Argument voor:** Structurele seculaire rugwind vanuit AI-infrastructuur en digitalisering ondersteunt de winstkracht van de onderliggende techreuzen.
-- **Argument tegen:** Kortetermijncorrectie (-4,9% over 1 maand) als gevolg van kapitaalrotatie vanuit megacap tech naar bredere marktsegmenten.
-- **Cijfers bij aankoop:** momentum 12-1m +23%, 3m +3%, volatiliteit 19%
-- **Risico om op te volgen:** Rentestijgingen of tegenvallende rendementen op massale kapitaalinvesteringen in AI-capaciteit.
-- **Recent nieuws:** [Stock Market Today: S&P 500, Nasdaq 100, Dow Jones Futures Fall Ahead of Global ](https://www.benzinga.com/markets/equities/26/10/62553473/stock-market-today-sp-500-nasdaq-100-futures-mixed-ahead-of-global-pmi-data-western-digital-newmont-crown-castle-in-focus) · [Tom Lee Urges Buying the Tech Dip, Calls Sell-Off a ‘Healthy Correction,’ Points](https://www.benzinga.com/markets/market-summary/26/10/62556338/tom-lee-urges-buying-the-tech-dip-calls-sell-off-a-healthy-correction-points-to-30-trillion-infrastructure-boom-ahead)
-- **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/QQQ) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=QQQ) · [Finviz](https://finviz.com/quote.ashx?t=QQQ)
-
 ### AAPL
 **Apple Inc.** — gekocht sinds 2026-10-23
 
@@ -88,6 +76,18 @@ _Bijgewerkt 2026-10-23 14:46 New York-tijd. Paperrekening, geen echt geld. Geen 
 - **Risico om op te volgen:** Wereldwijde mededingingsonderzoeken en mogelijke inperkingen van App Store-inkomsten.
 - **Recent nieuws:** [Can Apple Top Nvidia? iPhone Duo and Nov. 2 Earnings Hold the Key](https://www.benzinga.com/trading-ideas/movers/26/10/62557439/can-apple-top-nvidia-iphone-duo-and-nov-2-earnings-hold-the-key) · [Apple Insider Sells Shares Worth $814,748](https://www.marketscreener.com/news/apple-insider-sold-shares-worth-814-748-according-to-a-recent-sec-filing-ce785cded08ff12d) · [Assessing Apple's Performance Against Competitors In Technology Hardware, Storag](https://www.benzinga.com/news/26/10/62552839/assessing-apple-s-performance-against-competitors-technology-hardware-storage-amp-peripherals-indust)
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/AAPL) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=AAPL) · [Finviz](https://finviz.com/quote.ashx?t=AAPL)
+
+### QQQ
+**Invesco QQQ Trust** — gekocht sinds 2026-10-23
+
+- **Wat:** Exchange-Traded Fund dat de Nasdaq-100 index volgt, met een zware weging in toonaangevende technologie- en innovatiebedrijven.
+- **Waarom gekozen (regels):** trend OK, momentum +23%, vol 19%
+- **Argument voor:** Structurele seculaire rugwind vanuit AI-infrastructuur en digitalisering ondersteunt de winstkracht van de onderliggende techreuzen.
+- **Argument tegen:** Kortetermijncorrectie (-4,9% over 1 maand) als gevolg van kapitaalrotatie vanuit megacap tech naar bredere marktsegmenten.
+- **Cijfers bij aankoop:** momentum 12-1m +23%, 3m +3%, volatiliteit 19%
+- **Risico om op te volgen:** Rentestijgingen of tegenvallende rendementen op massale kapitaalinvesteringen in AI-capaciteit.
+- **Recent nieuws:** [Stock Market Today: S&P 500, Nasdaq 100, Dow Jones Futures Fall Ahead of Global ](https://www.benzinga.com/markets/equities/26/10/62553473/stock-market-today-sp-500-nasdaq-100-futures-mixed-ahead-of-global-pmi-data-western-digital-newmont-crown-castle-in-focus) · [Tom Lee Urges Buying the Tech Dip, Calls Sell-Off a ‘Healthy Correction,’ Points](https://www.benzinga.com/markets/market-summary/26/10/62556338/tom-lee-urges-buying-the-tech-dip-calls-sell-off-a-healthy-correction-points-to-30-trillion-infrastructure-boom-ahead)
+- **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/QQQ) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=QQQ) · [Finviz](https://finviz.com/quote.ashx?t=QQQ)
 
 ### KO
 **The Coca-Cola Company** — gekocht sinds 2026-10-23
