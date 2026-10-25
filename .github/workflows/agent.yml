@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       command:
-        description: "status | tick | once | report"
+        description: "status | tick | once | report | notify-test"
         default: "tick"
 
 permissions:
@@ -58,7 +58,7 @@ jobs:
       - name: Agent
         run: |
           CMD="${{ github.event.inputs.command || 'tick' }}"
-          case "$CMD" in status|tick|once|report) ;; *) echo "Onbekend commando: $CMD"; exit 1;; esac
+          case "$CMD" in status|tick|once|report|notify-test) ;; *) echo "Onbekend commando: $CMD"; exit 1;; esac
           if [ "$TRADING_MODE" = "dry_run" ]; then FLAG="--dry-run"; echo "Modus: DRY-RUN (niets wordt geplaatst)"
           else FLAG=""; echo "Modus: PAPER (orders op paperrekening)"; fi
           if [ "$CMD" = "status" ] || [ "$CMD" = "report" ]; then python -m agent "$CMD"
