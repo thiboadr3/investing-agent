@@ -104,6 +104,23 @@ def stock_targets(snaps: dict[str, Snapshot], budget: float, top_n: int,
     return w, why
 
 
+def shortlist(snaps: dict[str, Snapshot], n: int, strat: dict, held: set[str] | None = None,
+              benchmark: str = "SPY") -> list[str]:
+    """De n sterkste kandidaten (zelfde filters als de regels) + alle huidige posities.
+    Hieruit kiest de AI in de modus ai_mode: pick."""
+    key = strat.get("score", "mom12")
+    mv = strat.get("max_vol_pct")
+    ok = [s for s in snaps.values()
+          if not s.crypto and s.symbol != benchmark and s.above_200d is True
+          and (score(s, key) or 0) > 0 and not (mv and (s.vol_3m or 0) > mv / 100)]
+    ok.sort(key=lambda s: score(s, key), reverse=True)
+    out = [s.symbol for s in ok[:n]]
+    # huidige posities enkel als het gewone aandelen zijn (de scan geeft die een naam);
+    # ETF's/fondsen in portefeuille kan de AI dus niet houden -> worden verkocht
+    return out + sorted(h for h in (held or set())
+                        if h in snaps and snaps[h].name and h not in out)
+
+
 def crypto_targets(snaps: dict[str, Snapshot], max_total: float, cap: float,
                    ) -> tuple[dict[str, float], dict[str, str]]:
     """Crypto: enkel munten boven 200d-gemiddelde en met positief 3m-rendement.

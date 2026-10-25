@@ -53,7 +53,7 @@ crypto:
   max_total_pct: 20           # crypto samen nooit meer dan dit
   max_position_pct: 12        # per munt
 
-# Regelstrategie (beslist WAT en HOEVEEL; de AI kan enkel verlagen)
+# Strategie: regels maken een shortlist + voorstel; de AI kiest (ai_mode: pick)
 strategy:
   target_invested_pct: 95     # rest blijft cash
   score: mom6                 # rangschikking: 6-maands momentum (laatste maand uitgezonderd); backtest beste in beide periodes
@@ -67,7 +67,11 @@ strategy:
   bear_invested_pct: 30       # belegd deel als de marktfilter aanslaat
   trend_sma_days: 200         # enkel bezitten boven dit gemiddelde
   crypto_momentum_days: 90    # crypto: positief rendement over 90 dagen vereist
-  ai_filter: true             # AI mag posities halveren of schrappen, nooit vergroten
+  ai_filter: true             # AI aan (uit = enkel regels)
+  ai_mode: pick               # pick: AI kiest zelf uit de shortlist | filter: AI mag enkel verkleinen
+  shortlist_n: 25             # zoveel sterkste kandidaten (trend + momentum) krijgt de AI te zien
+  ai_min_positions: 3
+  ai_max_positions: 10        # harde limieten blijven: max 20% per aandeel, 95% belegd, noodrem -15%
 
 # Schaduwportefeuilles (virtueel doorgerekend, worden NIET verhandeld)
 shadows:

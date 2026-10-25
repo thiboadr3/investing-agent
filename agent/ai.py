@@ -1,5 +1,6 @@
-"""Gemini: nieuwsfilter op de regelportefeuille (enkel verlagen) en een vrije variant
-voor de schaduwportefeuille 'AI vrij'. De risicolaag beslist altijd."""
+"""Gemini: de AI kiest de portefeuille uit een shortlist van de regels (PICK), of filtert
+enkel (FILTER, oude modus); plus een vrije variant voor de schaduw 'AI vrij'.
+De risicolaag beslist altijd."""
 from __future__ import annotations
 
 import json
@@ -47,6 +48,36 @@ Formaat:
 "confidence": 0.7, "reason": "..."}}]}}"""
 
 
+PICK = """Je bent de portefeuillebeheerder van een paper-trading agent (lange posities, geen
+hefboom, geen shorts, horizon dagen tot maanden). Doel: het hoogst mogelijke rendement, met
+verstand van risico. JIJ beslist welke aandelen de portefeuille bezit en hoeveel.
+
+Je kiest UITSLUITEND uit de shortlist hieronder: de sterkste aandelen van de hele Amerikaanse
+markt op trend en momentum (boven 200d-gemiddelde, positief 6-1-maandsmomentum), aangevuld met
+de huidige posities. Het regelsysteem stelt een standaardportefeuille voor (kolom
+'voorstel regels'); je mag daarvan afwijken als je een goede reden hebt.
+
+Regels (worden daarna hard gecontroleerd; overtredingen worden afgekapt):
+- per aandeel max {max_w} van de portefeuille, totaal max {invested}
+- {min_n} tot {max_n} posities; niet vermelde symbolen = 0 (verkopen)
+- een bestaande positie hou je enkel als ze nog steeds tot je beste keuzes hoort; "we
+  hebben ze al" is geen reden. Wissel wel niet voor een klein verschil: elke wissel kost geld.
+- ETF's en fondsen zijn niet toegelaten (enkel losse aandelen uit de shortlist).
+- let op kwartaalcijfers kort na vandaag, één-sectorrisico en hype zonder fundament
+
+Per gekozen positie: company (officiële naam), what (wat het bedrijf doet, 1-2 zinnen),
+sector, bull (sterkste argument voor, 1-2 zinnen), bear (sterkste argument tegen, 1-2 zinnen),
+risk (belangrijkste risico om op te volgen, 1 zin), weight, reason (waarom dit gewicht).
+Per verkochte huidige positie: een korte reden in "sells".
+{lessons}
+{guard}
+
+Formaat:
+{{"market_view": "...", "positions": [{{"symbol": "ABC", "company": "...", "what": "...",
+"sector": "...", "bull": "...", "bear": "...", "risk": "...", "weight": 0.15,
+"reason": "..."}}], "sells": [{{"symbol": "XYZ", "reason": "..."}}]}}"""
+
+
 REVIEW = """Je bent de evaluator van een paper-trading agent (regels: trend + momentum +
 volatiliteit; AI mag enkel posities verkleinen bij rode vlaggen). Hieronder de feiten van de
 afgelopen periode. Schrijf in het Nederlands een eerlijke, nuchtere evaluatie.
@@ -80,12 +111,15 @@ def _fmt(v, pct=True):
 
 
 def market_table(snaps: dict, weights: dict[str, float], label: str) -> list[str]:
-    lines = [f"MARKTDATA (symbool | naam | prijs | 1m | 3m | 12m | boven 200d | vol 3m | {label})"]
+    lines = [f"MARKTDATA (symbool | naam | prijs | 1m | 3m | 6-1m | 12m | boven 200d | vol 3m | "
+             f"dagvolume $mln | {label})"]
     for s in snaps.values():
         nm = "crypto" if s.crypto else (s.name or "aandeel")[:40]
+        dv = f"{s.dollar_vol / 1e6:.0f}" if s.dollar_vol else "n/a"
         lines.append(f"{s.symbol} | {nm} | {s.price:.2f} | "
-                     f"{_fmt(s.ret_1m)} | {_fmt(s.ret_3m)} | {_fmt(s.ret_12m)} | {s.above_200d} | "
-                     f"{_fmt(s.vol_3m, False)} | {weights.get(s.symbol, 0):.1%}")
+                     f"{_fmt(s.ret_1m)} | {_fmt(s.ret_3m)} | {_fmt(s.mom_6_1)} | {_fmt(s.ret_12m)} | "
+                     f"{s.above_200d} | {_fmt(s.vol_3m, False)} | {dv} | "
+                     f"{weights.get(s.symbol, 0):.1%}")
     return lines
 
 
@@ -108,6 +142,54 @@ def filter_prompt(snaps: dict, rule_weights: dict[str, float], news: list[dict],
     return "\n".join([FILTER.format(guard=GUARD, lessons=les), ""]
                      + market_table(sel, rule_weights, "doelgewicht regels")
                      + [""] + news_block(news))
+
+
+def pick_prompt(shortlist: dict, rule_weights: dict[str, float], holdings: list[str],
+                news: list[dict], lessons: list[str] | None, max_w: float, invested: float,
+                min_n: int, max_n: int) -> str:
+    les = ""
+    if lessons:
+        les = ("\nLESSEN uit eerdere weken (eigen evaluaties; gebruik ze als context):\n"
+               + "\n".join(f"- {x}" for x in lessons) + "\n")
+    head = PICK.format(guard=GUARD, lessons=les, max_w=f"{max_w:.0%}",
+                       invested=f"{invested:.0%}", min_n=min_n, max_n=max_n)
+    hold = ["HUIDIGE POSITIES (symbool | gewicht | resultaat sinds aankoop):"] + (
+        holdings or ["(geen)"])
+    return "\n".join([head, ""] + hold + [""]
+                      + market_table(shortlist, rule_weights, "voorstel regels")
+                      + [""] + news_block(news))
+
+
+def parse_pick(text: str, allowed: set[str], max_w: float, invested: float, max_n: int):
+    """Strikt: enkel symbolen uit de shortlist; gewicht 0..max_w; totaal <= invested;
+    max `max_n` posities (grootste gewichten). Geeft (gewichten, fiches, verkoopredenen,
+    marktbeeld)."""
+    data = json.loads(text)
+    w, fiches, sells = {}, {}, {}
+    for a in data.get("positions") or []:
+        sym = str(a.get("symbol", "")).upper()
+        if sym not in allowed:
+            continue
+        try:
+            x = min(max(float(a.get("weight", 0)), 0.0), max_w)
+        except (TypeError, ValueError):
+            continue
+        if x <= 0:
+            continue
+        w[sym] = x
+        fiches[sym] = {k: str(a[k])[:400] for k in
+                       ("company", "what", "sector", "bull", "bear", "risk", "reason") if a.get(k)}
+    if len(w) > max_n:
+        w = dict(sorted(w.items(), key=lambda kv: -kv[1])[:max_n])
+    tot = sum(w.values())
+    if tot > invested:
+        w = {s: v * invested / tot for s, v in w.items()}
+    w = {s: round(v, 4) for s, v in w.items()}
+    for a in data.get("sells") or []:
+        sym = str(a.get("symbol", "")).upper()
+        if sym and sym not in w:
+            sells[sym] = str(a.get("reason", ""))[:300]
+    return w, {s: f for s, f in fiches.items() if s in w}, sells, str(data.get("market_view", ""))[:1000]
 
 
 def free_prompt(snaps: dict, current: dict[str, float], news: list[dict], max_w: float) -> str:

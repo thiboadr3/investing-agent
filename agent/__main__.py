@@ -303,9 +303,14 @@ class Agent:
 
         if cfg.benchmark in snaps:
             self.db.set(f"spy_{cycle_id}", snaps[cfg.benchmark].price)
-        rule_w, why = self._rule_targets(snaps, set(pos))   # regels bepalen wat en hoeveel
+        rule_w, why = self._rule_targets(snaps, set(pos))   # voorstel van de regels
+        strat = cfg.strategy
+        pick_mode = strat.get("ai_mode", "filter") == "pick"
+        short = (rules.shortlist(snaps, strat.get("shortlist_n", 25), strat, set(pos),
+                                 cfg.benchmark) if pick_mode else [])
         # nieuws enkel voor kandidaten en bezette posities (niet voor duizenden tickers)
-        focus = [s for s in sorted(set(rule_w) | set(pos)) if not config.is_crypto(s)]
+        focus = [s for s in sorted(set(rule_w) | set(pos) | set(short))
+                 if not config.is_crypto(s)]
         news = []
         for i in range(0, len(focus), 25):
             news += self.data.news(focus[i:i + 25], cfg.ai["news_lookback_hours"], 50)
@@ -313,10 +318,34 @@ class Agent:
             news += self.data.news(list(cfg.crypto), cfg.ai["news_lookback_hours"], 20)
         self.store_news(news)
         final_w, ai_ok, notes, view, raw, fiches = dict(rule_w), True, [], "", None, {}
-        if cfg.strategy.get("ai_filter", True) and rule_w:   # AI mag enkel verkleinen
+        lessons = [x for (x,) in self.db.x(
+            "SELECT lesson FROM lessons ORDER BY ts DESC LIMIT 8").fetchall()]
+        if pick_mode and short:                               # AI kiest uit de shortlist
             try:
-                lessons = [x for (x,) in self.db.x(
-                    "SELECT lesson FROM lessons ORDER BY ts DESC LIMIT 8").fetchall()]
+                cap = cfg.risk.max_position_pct / 100
+                invested = strat.get("target_invested_pct", 95) / 100
+                max_n = strat.get("ai_max_positions", 10)
+                holdings = [f"{s} | {p.market_value / acct.equity:.1%} | {p.unrealized_plpc:+.1%}"
+                            for s, p in pos.items()] if acct.equity else []
+                sub = {s: snaps[s] for s in short}
+                raw = self._ai_call(ai.pick_prompt(
+                    sub, rule_w, holdings, news, lessons, cap, invested,
+                    strat.get("ai_min_positions", 3), max_n), "keuze")
+                final_w, fiches, sells, view = ai.parse_pick(raw, set(short), cap, invested, max_n)
+                if not final_w:
+                    raise ValueError("AI koos geen enkele positie")
+                notes = [{"symbol": s, "factor": 0.0, "reason": r, "label": "verkoopt"}
+                         for s, r in sells.items() if s in pos]
+                notes += [{"symbol": s, "factor": 0.0, "label": "verkoopt",
+                           "reason": "niet meer gekozen"}
+                          for s in pos if s not in final_w and s not in sells
+                          and not config.is_crypto(s)]
+            except Exception as e:
+                ai_ok, final_w = False, dict(rule_w)
+                self.db.event("ERROR", "AI-keuze mislukt: vandaag enkel verkopen volgens regels",
+                              str(e))
+        elif strat.get("ai_filter", True) and rule_w:   # oude modus: AI mag enkel verkleinen
+            try:
                 raw = self._ai_call(ai.filter_prompt(snaps, rule_w, news, lessons), "filter+debat")
                 factors, cf, notes, view, fiches = ai.parse_filter(raw, set(rule_w))
                 for s in final_w:
@@ -362,15 +391,25 @@ class Agent:
         self.db.set(f"plan_{cycle_id}", plan)
         top = sorted(final_w.items(), key=lambda kv: -kv[1])
         self.db.event("INFO", f"Plan {cycle_id}: {len(final_w)} doelposities "
-                              f"({sum(final_w.values()):.0%} belegd), AI-filter "
+                              f"({sum(final_w.values()):.0%} belegd), AI "
                               f"{'OK' if ai_ok else 'MISLUKT'}: "
                               + ", ".join(f"{s} {w:.1%}" for s, w in top))
+        who = "AI-keuze" if pick_mode else "AI-filter"
         lines = [f"📋 <b>Plan {cycle_id[6:]}-{cycle_id[4:6]}</b> · {len(final_w)} posities, "
-                 f"{sum(final_w.values()):.0%} belegd · AI-filter {'OK' if ai_ok else 'MISLUKT (vandaag enkel verkopen)'}",
+                 f"{sum(final_w.values()):.0%} belegd · {who} "
+                 f"{'OK' if ai_ok else 'MISLUKT (vandaag enkel verkopen)'}",
                  ", ".join(f"{esc(s)} {w:.0%}" for s, w in top)]
+        if pick_mode and ai_ok:
+            if view:
+                lines.append(f"🧠 {esc(view[:300])}")
+            extra = sorted(set(final_w) - set(rule_w))
+            if extra:
+                lines.append(f"🤖 AI koos anders dan de regels: {esc(', '.join(extra))} "
+                             f"(regels: {esc(', '.join(sorted(rule_w)))})")
         for n in notes:
-            lines.append(f"✂️ {esc(n['symbol'])} {'geschrapt' if n['factor'] == 0 else 'gehalveerd'}: "
-                         f"{esc(n['reason'][:200])}")
+            lbl = n.get("label") or ("geschrapt" if n["factor"] == 0 else "gehalveerd")
+            icon = "🔴" if n.get("label") else "✂️"
+            lines.append(f"{icon} {esc(n['symbol'])} {lbl}: {esc(n['reason'][:200])}")
         self.notify.send("\n".join(lines), key=f"plan_{cycle_id}_{int(ai_ok)}")
         # schaduw 'AI vrij' NA het bewaren van het plan: mag het echte plan nooit tegenhouden
         free_w = None
