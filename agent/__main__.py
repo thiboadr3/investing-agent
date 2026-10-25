@@ -176,8 +176,24 @@ class Agent:
                 lines += [f"⛔ geweigerd {esc(sym)} ({esc(rule)})" for sym, rule in refused]
                 self.notify.send("\n".join(lines))
 
+    def _wait_for_sells(self, ctx, timeout_s: int = 90):
+        """Na verkopen: wacht tot ze uitgevoerd zijn en neem dan de echte cash over,
+        zodat de aankopen van dezelfde ronde niet op een verouderd cashbedrag botsen."""
+        t0 = time.time()
+        while time.time() - t0 < timeout_s and self.broker.open_order_symbols():
+            time.sleep(5)
+        try:
+            ctx.cash = self.broker.account().cash
+            ctx.open_order_symbols = self.broker.open_order_symbols()
+        except Exception as e:
+            self.db.event("WARN", "Cash na verkopen niet op te halen; schatting gebruikt", str(e))
+
     def _execute_inner(self, props, ctx, cycle_id, dry_run, reason, r, done, refused):
+        sold = False
         for p in props:
+            if p.side == "buy" and sold and not dry_run:
+                self._wait_for_sells(ctx)
+                sold = False
             cid = f"ia-{cycle_id}-{p.symbol.replace('/', '')}-{p.side}"
             if self.db.order_exists(cid) or self.broker.order_by_client_id(cid):
                 continue  # al uitgevoerd (bv. na herstart)
@@ -209,6 +225,11 @@ class Agent:
             if p.side == "buy":
                 ctx.cash -= p.notional
                 ctx.position_values[p.symbol] = ctx.position_values.get(p.symbol, 0) + p.notional
+            else:                       # opbrengst (schatting; echte cash na _wait_for_sells)
+                sold = True
+                ctx.cash += p.notional
+                ctx.position_values[p.symbol] = max(
+                    0.0, ctx.position_values.get(p.symbol, 0) - p.notional)
 
     def shadow_symbols(self) -> set[str]:
         out = set()

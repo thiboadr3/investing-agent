@@ -83,6 +83,6 @@ def check_order(p: Proposal, c: Context, r: Risk, now: datetime | None = None) -
         crypto_total = sum(v for s, v in c.position_values.items() if "/" in s) + p.notional
         if crypto_total > c.equity * r.max_crypto_total_pct / 100 * 1.001:
             return "max_crypto_aandeel"
-    if c.cash - p.notional < c.equity * r.min_cash_pct / 100:
+    if c.cash - p.notional < c.equity * r.min_cash_pct / 100 * 0.999:   # afrondingsmarge
         return "cashbuffer"
     return None
