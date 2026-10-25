@@ -186,3 +186,22 @@ def test_band_skips_small_adjustments():
     props = strategy.proposals({"AAPL": 0.10, "SPY": 0.05}, 10_000, {"AAPL": 800},
                                {"AAPL", "SPY"}, 100, band=0.03)
     assert [(p.symbol, p.side) for p in props] == [("SPY", "buy")]
+
+
+def test_sector_cap_limits_names_and_weight():
+    snaps = {s: snap(s, mom=m_, vol=0.2) for s, m_ in
+             [("XOM", .5), ("CVX", .45), ("XLE", .4), ("AAPL", .3), ("MSFT", .2)]}
+    sectors = {"XOM": "Energie", "CVX": "Energie", "XLE": "Energie"}
+    w, why = rules.stock_targets(snaps, 0.95, top_n=4, cap=0.10, sectors=sectors, sector_cap=0.25)
+    energy = sum(v for s, v in w.items() if sectors.get(s) == "Energie")
+    assert energy <= 0.25 + 1e-9 and "XLE" not in w and "sectorlimiet" in why["XLE"]
+    assert set(w) == {"XOM", "CVX", "AAPL", "MSFT"}
+
+
+def test_market_filter_reduces_exposure():
+    snaps = {f"S{i}": snap(f"S{i}", mom=0.3) for i in range(12)}
+    snaps["SPY"] = snap("SPY", above=False, mom=-0.1)
+    strat = {"target_invested_pct": 95, "stock_top_n": 10, "market_filter": True,
+             "bear_invested_pct": 30}
+    w, why = rules.targets(snaps, strat, 0.10, 0.2, 0.12)
+    assert abs(sum(w.values()) - 0.30) < 1e-3 and "marktfilter" in why["SPY"]

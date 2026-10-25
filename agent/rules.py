@@ -34,11 +34,14 @@ def _inverse_vol(cands: list[Snapshot], budget: float, cap: float) -> dict[str, 
 
 def stock_targets(snaps: dict[str, Snapshot], budget: float, top_n: int,
                   cap: float, held: set[str] | None = None,
-                  buffer: int = 0) -> tuple[dict[str, float], dict[str, str]]:
+                  buffer: int = 0, sectors: dict[str, str] | None = None,
+                  sector_cap: float | None = None) -> tuple[dict[str, float], dict[str, str]]:
     """Aandelen/ETF's: boven 200d-gemiddelde en positief 12-1 momentum; top N op momentum.
 
     Buffer: een positie die je al bezit, blijft zolang ze in de top (N + buffer) staat.
-    Dat voorkomt dat aandelen rond plaats N elke dag gekocht en weer verkocht worden."""
+    Dat voorkomt dat aandelen rond plaats N elke dag gekocht en weer verkocht worden.
+    Sectorlimiet: max `sector_cap` van de portefeuille per sector (onbekende sector = eigen
+    sector); bij selectie max floor(sector_cap / cap) namen per sector."""
     why: dict[str, str] = {}
     eligible = []
     for s in snaps.values():
@@ -52,13 +55,37 @@ def stock_targets(snaps: dict[str, Snapshot], budget: float, top_n: int,
             eligible.append(s)
     eligible.sort(key=lambda s: s.mom_12_1, reverse=True)
     held = held or set()
-    keep = [s for s in eligible[:top_n + buffer] if s.symbol in held][:top_n]
-    new = [s for s in eligible if s not in keep][:top_n - len(keep)]
-    chosen = sorted(keep + new, key=lambda s: s.mom_12_1, reverse=True)
+    sectors = sectors or {}
+    sec = lambda s: sectors.get(s.symbol, s.symbol)
+    max_names = max(1, int(sector_cap / cap + 1e-9)) if sector_cap else top_n
+    count: dict[str, int] = {}
+    chosen: list[Snapshot] = []
+
+    def take(s):
+        if len(chosen) < top_n and count.get(sec(s), 0) < max_names and s not in chosen:
+            chosen.append(s)
+            count[sec(s)] = count.get(sec(s), 0) + 1
+            return True
+        return False
+
+    for s in eligible[:top_n + buffer]:      # eerst bestaande posities binnen de buffer
+        if s.symbol in held:
+            take(s)
+    for s in eligible:                        # dan de sterkste nieuwe
+        if not take(s) and s not in chosen and len(chosen) < top_n:
+            why[s.symbol] = f"momentum {s.mom_12_1:+.0%}, sectorlimiet {sec(s)}"
+    chosen.sort(key=lambda s: s.mom_12_1, reverse=True)
     for s in eligible:
-        if s not in chosen:
+        if s not in chosen and s.symbol not in why:
             why[s.symbol] = f"momentum {s.mom_12_1:+.0%}, buiten top {top_n}"
     w = _inverse_vol(chosen, budget, cap)
+    if sector_cap:                            # overgewicht per sector afschalen (rest = cash)
+        tot: dict[str, float] = {}
+        for s in chosen:
+            tot[sec(s)] = tot.get(sec(s), 0) + w.get(s.symbol, 0)
+        for s in chosen:
+            if tot[sec(s)] > sector_cap and s.symbol in w:
+                w[s.symbol] = round(w[s.symbol] * sector_cap / tot[sec(s)], 4)
     for s in chosen:
         why[s.symbol] = f"trend OK, momentum {s.mom_12_1:+.0%}, vol {s.vol_3m:.0%}"
     return w, why
@@ -87,14 +114,27 @@ def crypto_targets(snaps: dict[str, Snapshot], max_total: float, cap: float,
     return w, why
 
 
+def market_ok(snaps: dict[str, Snapshot], benchmark: str = "SPY") -> bool:
+    """Marktfilter: de brede markt (benchmark) staat boven haar 200d-gemiddelde."""
+    b = snaps.get(benchmark)
+    return b is None or b.above_200d is not False
+
+
 def targets(snaps: dict[str, Snapshot], strat: dict, stock_cap: float,
             crypto_total: float, crypto_cap: float,
-            held: set[str] | None = None) -> tuple[dict[str, float], dict[str, str]]:
+            held: set[str] | None = None, sectors: dict[str, str] | None = None,
+            benchmark: str = "SPY") -> tuple[dict[str, float], dict[str, str]]:
     invested = strat.get("target_invested_pct", 95) / 100
+    why_m = {}
+    if strat.get("market_filter") and not market_ok(snaps, benchmark):
+        invested = strat.get("bear_invested_pct", 30) / 100
+        why_m[benchmark] = f"marktfilter: {benchmark} onder 200d → {invested:.0%} belegd"
     cw, cwhy = crypto_targets(snaps, crypto_total, crypto_cap)
+    sc = strat.get("sector_max_pct")
     sw, swhy = stock_targets(snaps, invested - sum(cw.values()), strat.get("stock_top_n", 10),
-                             stock_cap, held, strat.get("hold_buffer", 0))
-    return {**sw, **cw}, {**swhy, **cwhy}
+                             stock_cap, held, strat.get("hold_buffer", 0), sectors,
+                             sc / 100 if sc else None)
+    return {**sw, **cw}, {**swhy, **cwhy, **why_m}
 
 
 def fixed_split(snaps: dict[str, Snapshot], strat: dict, crypto_share: float,

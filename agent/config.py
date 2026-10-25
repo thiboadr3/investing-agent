@@ -1,6 +1,7 @@
 """Laadt config.yaml en .env. Weigert alles behalve paper-modus."""
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -41,6 +42,7 @@ class Config:
     alpaca_key: str
     alpaca_secret: str
     gemini_key: str
+    sectors: dict = field(default_factory=dict)
 
     @property
     def all_symbols(self) -> tuple[str, ...]:
@@ -72,4 +74,6 @@ def load(path: Path | None = None) -> Config:
         alpaca_key=os.getenv("ALPACA_API_KEY", ""),
         alpaca_secret=os.getenv("ALPACA_SECRET_KEY", ""),
         gemini_key=os.getenv("GEMINI_API_KEY", ""),
+        sectors=json.loads((ROOT / "agent" / "sectors.json").read_text())
+        if (ROOT / "agent" / "sectors.json").exists() else {},
     )

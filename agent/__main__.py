@@ -212,7 +212,7 @@ class Agent:
         r = self.cfg.risk
         return rules.targets(snaps, self.cfg.strategy, r.max_position_pct / 100,
                              r.max_crypto_total_pct / 100, r.max_crypto_position_pct / 100,
-                             held)
+                             held, self.cfg.sectors, self.cfg.benchmark)
 
     # ---------- 1. onderzoek vóór de opening ----------
     def build_plan(self) -> dict:
