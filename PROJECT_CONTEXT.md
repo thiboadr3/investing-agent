@@ -145,3 +145,5 @@ Deze bronnen zijn geraadpleegd tijdens het gesprek op 22 oktober 2026. Controlee
 ## Werkinstructies uit dit gesprek
 
 Voor browserwerk gelden de door de gebruiker aangeleverde AGENTS.md-instructies: connectors/API's hebben voorkeur; anders uitsluitend eigen, exact geïdentificeerde tabs met tabgebonden bediening. Geen gebruik van actieve gebruikerstabs of globale desktopbediening. Controleer vóór wijzigingen de actuele URL, account-/tenantidentiteit en het bedoelde object. Deze afspraken bieden geen technische sessie-isolatie.
+
+- 25 okt: universum = alle liquide US-aandelen (scan, ook small/mid caps, geen ETF's); rangschikking mom6 (6-1), top 5, max 20%/positie, buffer 5, band 3%, vol-plafond 150%. Grid-backtest S&P 500: mom6 top5 deel1 +8,7%/j (SPY +11,1%), deel2 +43,1%/j (SPY +21,7%), max. daling ~−39%. Small caps zijn NIET eerlijk te backtesten (geen historische lijst) → paper-resultaten zijn de echte toets. Telegram werkt (chat met @albert_investing_bot).

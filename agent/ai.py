@@ -80,9 +80,10 @@ def _fmt(v, pct=True):
 
 
 def market_table(snaps: dict, weights: dict[str, float], label: str) -> list[str]:
-    lines = [f"MARKTDATA (symbool | type | prijs | 1m | 3m | 12m | boven 200d | vol 3m | {label})"]
+    lines = [f"MARKTDATA (symbool | naam | prijs | 1m | 3m | 12m | boven 200d | vol 3m | {label})"]
     for s in snaps.values():
-        lines.append(f"{s.symbol} | {'crypto' if s.crypto else 'aandeel'} | {s.price:.2f} | "
+        nm = "crypto" if s.crypto else (s.name or "aandeel")[:40]
+        lines.append(f"{s.symbol} | {nm} | {s.price:.2f} | "
                      f"{_fmt(s.ret_1m)} | {_fmt(s.ret_3m)} | {_fmt(s.ret_12m)} | {s.above_200d} | "
                      f"{_fmt(s.vol_3m, False)} | {weights.get(s.symbol, 0):.1%}")
     return lines

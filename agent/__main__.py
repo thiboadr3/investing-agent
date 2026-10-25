@@ -23,6 +23,7 @@ from zoneinfo import ZoneInfo
 from . import ai, config, risk, rules, strategy
 from .broker import Broker
 from .data import MarketData
+from .universe import Scanner
 from .db import DB, now
 from .notify import Notifier, esc
 from .shadow import NAMES, Shadows
@@ -155,7 +156,8 @@ class Agent:
             position_values={s: p.market_value for s, p in pos.items()},
             position_qty={s: p.qty for s, p in pos.items()},
             open_order_symbols=self.broker.open_order_symbols(),
-            universe=set(self.cfg.all_symbols), orders_today=self.db.orders_today(),
+            universe=set(self.cfg.all_symbols) | set(snaps) | set(pos),
+            orders_today=self.db.orders_today(),
             market_open=bool(clock.is_open) or (dry_run and ignore_hours),
             account_ok=(not acct.trading_blocked and acct.status.endswith("ACTIVE")),
             stop_file=config.STOP_FILE.exists(),
@@ -208,6 +210,33 @@ class Agent:
                 ctx.cash -= p.notional
                 ctx.position_values[p.symbol] = ctx.position_values.get(p.symbol, 0) + p.notional
 
+    def shadow_symbols(self) -> set[str]:
+        out = set()
+        for n in NAMES:
+            st = self.shadows._load(n)
+            out |= set((st or {}).get("h", {}))
+        return out
+
+    def market_snaps(self, held: set[str]):
+        """Koersen + kerncijfers. Met scan aan: alle liquide US-aandelen (ook kleinere
+        bedrijven); lukt de scan niet, dan de vaste lijst uit config.yaml."""
+        cfg, sma = self.cfg, self.cfg.strategy.get("trend_sma_days", 200)
+        always = sorted({cfg.benchmark} | {s for s in held | self.shadow_symbols()
+                                            if not config.is_crypto(s)})
+        if cfg.scan.get("enabled"):
+            try:
+                snaps, _ = Scanner(cfg.alpaca_key, cfg.alpaca_secret).scan(
+                    cfg.scan.get("min_price", 5), cfg.scan.get("min_dollar_volume", 10e6),
+                    sma, always + list(cfg.universe), log=lambda m: self.db.event("INFO", m))
+                if cfg.crypto:
+                    snaps.update(self.data.snapshots([], list(cfg.crypto), sma))
+                if len(snaps) > 50:
+                    return snaps
+                raise RuntimeError(f"scan gaf maar {len(snaps)} aandelen")
+            except Exception as e:
+                self.db.event("ERROR", "Marktscan mislukt: vaste lijst gebruikt", str(e))
+        return self.data.snapshots(sorted(set(cfg.universe) | set(always)), list(cfg.crypto), sma)
+
     def _rule_targets(self, snaps, held=None):
         r = self.cfg.risk
         return rules.targets(snaps, self.cfg.strategy, r.max_position_pct / 100,
@@ -220,16 +249,19 @@ class Agent:
         cfg = self.cfg
         cycle_id = datetime.now(NY).strftime("%Y%m%d")
         acct, pos, _ = self.snapshot()
-        snaps = self.data.snapshots(list(cfg.universe), list(cfg.crypto),
-                                    cfg.strategy.get("trend_sma_days", 200))
-        news = self.data.news(list(cfg.universe), cfg.ai["news_lookback_hours"], 50)
-        if cfg.crypto:
-            news += self.data.news(list(cfg.crypto), cfg.ai["news_lookback_hours"], 20)
-        self.store_news(news)
+        snaps = self.market_snaps(set(pos))
 
         if cfg.benchmark in snaps:
             self.db.set(f"spy_{cycle_id}", snaps[cfg.benchmark].price)
         rule_w, why = self._rule_targets(snaps, set(pos))   # regels bepalen wat en hoeveel
+        # nieuws enkel voor kandidaten en bezette posities (niet voor duizenden tickers)
+        focus = [s for s in sorted(set(rule_w) | set(pos)) if not config.is_crypto(s)]
+        news = []
+        for i in range(0, len(focus), 25):
+            news += self.data.news(focus[i:i + 25], cfg.ai["news_lookback_hours"], 50)
+        if cfg.crypto:
+            news += self.data.news(list(cfg.crypto), cfg.ai["news_lookback_hours"], 20)
+        self.store_news(news)
         final_w, ai_ok, notes, view, raw, fiches = dict(rule_w), True, [], "", None, {}
         if cfg.strategy.get("ai_filter", True) and rule_w:   # AI mag enkel verkleinen
             try:
@@ -264,7 +296,8 @@ class Agent:
             f = dict(fiches.get(s, {}))
             f.update({"rule": why.get(s, ""), "ai_note": (ai_note.get(s) or {}).get("reason", ""),
                       "weight": final_w[s],
-                      "metrics": {"momentum_12_1": snaps[s].mom_12_1, "ret_3m": snaps[s].ret_3m,
+                      "metrics": {"momentum_12_1": snaps[s].mom_12_1,
+                                  "momentum_6_1": snaps[s].mom_6_1, "ret_3m": snaps[s].ret_3m,
                                   "vol_3m": snaps[s].vol_3m, "price": snaps[s].price}
                       if s in snaps else {}})
             self.db.x("INSERT OR REPLACE INTO fiches VALUES (?,?,?)",
@@ -296,8 +329,14 @@ class Agent:
                 cur_w = ({s: q * prices.get(s, 0) / tot for s, q in cur["h"].items()}
                          if cur and tot else {})
                 max_w = cfg.shadows.get("ai_free_max_position_pct", 25) / 100
-                raw_f = self._ai_call(ai.free_prompt(snaps, cur_w, news, max_w), "vrij")
-                free_w, _ = ai.parse_free(raw_f, set(cfg.all_symbols), max_w)
+                key = cfg.strategy.get("score", "mom12")
+                ranked = sorted((v for v in snaps.values() if not v.crypto
+                                 and v.symbol != cfg.benchmark and rules.score(v, key)),
+                                key=lambda v: -rules.score(v, key))
+                keep = {v.symbol for v in ranked[:40]} | set(cur_w) | set(cfg.crypto)
+                sub = {k: v for k, v in snaps.items() if k in keep}
+                raw_f = self._ai_call(ai.free_prompt(sub, cur_w, news, max_w), "vrij")
+                free_w, _ = ai.parse_free(raw_f, set(sub), max_w)
             except Exception as e:
                 self.db.event("WARN", "Schaduw 'AI vrij': geen beslissing vandaag", str(e))
 
@@ -313,11 +352,16 @@ class Agent:
         acct, pos, peak = self.snapshot()
         clock = self.broker.market_clock()
         # verse koersen voor de datacontrole en de schaduwportefeuilles
-        snaps = self.data.snapshots(list(cfg.universe), list(cfg.crypto),
+        need = (set(plan["weights"]) | set(plan.get("rule_weights") or {})
+                | set(plan.get("free_weights") or {}) | set(pos) | {cfg.benchmark}
+                | self.shadow_symbols())
+        stocks = sorted(s for s in need | set(cfg.universe) if not config.is_crypto(s))
+        snaps = self.data.snapshots(stocks, list(cfg.crypto),
                                     cfg.strategy.get("trend_sma_days", 200))
         ctx = self._risk_ctx(acct, pos, peak, clock, snaps, dry_run, ignore_hours)
         props = strategy.proposals(plan["weights"], acct.equity, ctx.position_values,
-                                   set(cfg.all_symbols), r.min_order_usd,
+                                   set(cfg.all_symbols) | set(plan["weights"]) | set(pos),
+                                   r.min_order_usd,
                                    allow_buys=plan["ai_ok"],
                                    band=cfg.strategy.get("rebalance_band_pct", 0) / 100)
         self.db.event("INFO", f"Uitvoering {cycle_id}: {len(props)} orderkandidaten "

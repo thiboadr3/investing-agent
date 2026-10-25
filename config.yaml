@@ -5,15 +5,16 @@
 mode: paper            # enkel 'paper' wordt ondersteund in deze fase
 benchmark: SPY
 
-# Aandelen en ETF's (liquide US large caps + brede ETF's)
+# Universum: ALLE Amerikaanse aandelen (NYSE, NASDAQ, AMEX), ook kleinere bedrijven.
+# Geen ETF's, fondsen, warrants of preferente aandelen. Enkel vlot verhandelbare aandelen:
+# te weinig volume = dure in- en uitstap en makkelijk te manipuleren koersen.
+scan:
+  enabled: true
+  min_price: 5                    # geen 'penny stocks'
+  min_dollar_volume: 10000000     # mediaan ≥ $10 mln verhandeld per dag (alle beurzen)
+
+# Vaste reservelijst: enkel gebruikt als de marktscan mislukt (geen ETF's).
 universe:
-  - SPY
-  - QQQ
-  - IWM
-  - XLK
-  - XLV
-  - XLF
-  - XLE
   - AAPL
   - MSFT
   - NVDA
@@ -37,6 +38,13 @@ universe:
   - XOM
   - CVX
   - ADBE
+  - PLTR
+  - AMD
+  - NFLX
+  - CRM
+  - ORCL
+  - TSLA
+  - UBER
 
 # Crypto (24/7). Voorlopig UIT: eerst focussen op aandelen.
 # Terug aanzetten: symbols: [BTC/USD, ETH/USD]
@@ -48,14 +56,16 @@ crypto:
 # Regelstrategie (beslist WAT en HOEVEEL; de AI kan enkel verlagen)
 strategy:
   target_invested_pct: 95     # rest blijft cash
-  stock_top_n: 10             # sterkste N aandelen/ETF's
-  hold_buffer: 10             # bestaande positie houden zolang ze in top (N + buffer) staat (minder omzet)
+  score: mom6                 # rangschikking: 6-maands momentum (laatste maand uitgezonderd); backtest beste in beide periodes
+  stock_top_n: 5              # sterkste N aandelen (geconcentreerd = meer rendement, ook meer schommeling)
+  hold_buffer: 5              # bestaande positie houden zolang ze in top (N + buffer) staat (minder omzet)
   rebalance_band_pct: 3       # bestaande posities pas bijsturen bij > 3% afwijking (backtest: veel minder kosten)
+  max_vol_pct: 150            # extreem beweeglijke aandelen (vaak hype/pump) overslaan
+  exclude_benchmark: true     # SPY is enkel vergelijking, nooit een positie
   sector_max_pct: null        # UIT: eerlijke backtest (S&P 500) toonde lager rendement met 25%; bv. 25 of 40 om aan te zetten
   market_filter: false        # SPY onder 200d -> minder belegd (eerst backtesten)
   bear_invested_pct: 30       # belegd deel als de marktfilter aanslaat
   trend_sma_days: 200         # enkel bezitten boven dit gemiddelde
-  momentum_months: 12         # momentum over 12 maanden, laatste maand uitgezonderd
   crypto_momentum_days: 90    # crypto: positief rendement over 90 dagen vereist
   ai_filter: true             # AI mag posities halveren of schrappen, nooit vergroten
 
@@ -68,7 +78,7 @@ shadows:
 risk:
   max_drawdown_pct: 15        # vanaf piek: geen nieuwe aankopen meer (pauzestand)
   pause_days: 28              # na zoveel dagen pauze wordt de piek gereset (anders eeuwig geblokkeerd)
-  max_position_pct: 10        # max gewicht per aandeel/ETF
+  max_position_pct: 20        # max gewicht per aandeel (5 posities)
   min_cash_pct: 5             # minimale cashbuffer
   max_orders_per_day: 16
   min_order_usd: 100          # kleinere aanpassingen worden genegeerd

@@ -43,6 +43,7 @@ class Config:
     alpaca_secret: str
     gemini_key: str
     sectors: dict = field(default_factory=dict)
+    scan: dict = field(default_factory=dict)   # dynamisch universum (alle US-aandelen)
 
     @property
     def all_symbols(self) -> tuple[str, ...]:
@@ -63,7 +64,8 @@ def load(path: Path | None = None) -> Config:
     risk["max_crypto_total_pct"] = cr.get("max_total_pct", 20)
     risk["max_crypto_position_pct"] = cr.get("max_position_pct", 12)
     return Config(
-        universe=tuple(s.upper() for s in raw["universe"]),
+        universe=tuple(s.upper() for s in raw.get("universe") or []),
+        scan=raw.get("scan") or {},
         crypto=tuple(s.upper() for s in cr.get("symbols", [])),
         benchmark=raw.get("benchmark", "SPY"),
         risk=Risk(**risk),

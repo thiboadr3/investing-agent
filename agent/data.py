@@ -25,6 +25,9 @@ class Snapshot:
     vol_3m: float | None        # geannualiseerde volatiliteit
     mom_12_1: float | None = None  # 12 maanden rendement zonder laatste maand
     crypto: bool = False
+    mom_6_1: float | None = None   # 6 maanden rendement zonder laatste maand
+    dollar_vol: float | None = None  # mediaan dagelijks verhandeld bedrag (20 d)
+    name: str = ""
 
 
 def _ret(closes: list[float], n: int, skip: int = 0) -> float | None:
@@ -45,7 +48,8 @@ def build_snapshot(sym: str, closes: list[float], as_of: datetime, crypto: bool,
         symbol=sym, price=closes[-1], as_of=as_of,
         ret_1m=_ret(closes, d_m), ret_3m=_ret(closes, d_q), ret_12m=_ret(closes, d_y),
         above_200d=(closes[-1] > sma) if sma else None, vol_3m=vol,
-        mom_12_1=_ret(closes, d_y, skip=d_m), crypto=crypto)
+        mom_12_1=_ret(closes, d_y, skip=d_m), crypto=crypto,
+        mom_6_1=_ret(closes, d_q * 2, skip=d_m))
 
 
 def news_symbol(sym: str) -> str:

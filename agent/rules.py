@@ -32,10 +32,19 @@ def _inverse_vol(cands: list[Snapshot], budget: float, cap: float) -> dict[str, 
     return {s: round(v, 4) for s, v in w.items() if v > 0}
 
 
+SCORES = {"mom12": ("mom_12_1", "12-1"), "mom6": ("mom_6_1", "6-1")}
+
+
+def score(s: Snapshot, key: str = "mom12") -> float | None:
+    return getattr(s, SCORES[key][0])
+
+
 def stock_targets(snaps: dict[str, Snapshot], budget: float, top_n: int,
                   cap: float, held: set[str] | None = None,
                   buffer: int = 0, sectors: dict[str, str] | None = None,
-                  sector_cap: float | None = None) -> tuple[dict[str, float], dict[str, str]]:
+                  sector_cap: float | None = None, score_key: str = "mom12",
+                  exclude: set[str] | None = None, max_vol: float | None = None,
+                  ) -> tuple[dict[str, float], dict[str, str]]:
     """Aandelen/ETF's: boven 200d-gemiddelde en positief 12-1 momentum; top N op momentum.
 
     Buffer: een positie die je al bezit, blijft zolang ze in de top (N + buffer) staat.
@@ -44,16 +53,20 @@ def stock_targets(snaps: dict[str, Snapshot], budget: float, top_n: int,
     sector); bij selectie max floor(sector_cap / cap) namen per sector."""
     why: dict[str, str] = {}
     eligible = []
+    lbl = SCORES[score_key][1]
+    sc = lambda s: score(s, score_key)
     for s in snaps.values():
-        if s.crypto:
+        if s.crypto or s.symbol in (exclude or ()):
             continue
         if s.above_200d is not True:
             why[s.symbol] = "onder 200d-gemiddelde"
-        elif s.mom_12_1 is None or s.mom_12_1 <= 0:
-            why[s.symbol] = "geen positief 12-1 momentum"
+        elif sc(s) is None or sc(s) <= 0:
+            why[s.symbol] = f"geen positief {lbl} momentum"
+        elif max_vol and (s.vol_3m or 0) > max_vol:
+            why[s.symbol] = f"te beweeglijk (vol {s.vol_3m:.0%})"
         else:
             eligible.append(s)
-    eligible.sort(key=lambda s: s.mom_12_1, reverse=True)
+    eligible.sort(key=sc, reverse=True)
     held = held or set()
     sectors = sectors or {}
     sec = lambda s: sectors.get(s.symbol, s.symbol)
@@ -73,11 +86,11 @@ def stock_targets(snaps: dict[str, Snapshot], budget: float, top_n: int,
             take(s)
     for s in eligible:                        # dan de sterkste nieuwe
         if not take(s) and s not in chosen and len(chosen) < top_n:
-            why[s.symbol] = f"momentum {s.mom_12_1:+.0%}, sectorlimiet {sec(s)}"
-    chosen.sort(key=lambda s: s.mom_12_1, reverse=True)
+            why[s.symbol] = f"momentum {sc(s):+.0%}, sectorlimiet {sec(s)}"
+    chosen.sort(key=sc, reverse=True)
     for s in eligible:
         if s not in chosen and s.symbol not in why:
-            why[s.symbol] = f"momentum {s.mom_12_1:+.0%}, buiten top {top_n}"
+            why[s.symbol] = f"momentum {lbl} {sc(s):+.0%}, buiten top {top_n}"
     w = _inverse_vol(chosen, budget, cap)
     if sector_cap:                            # overgewicht per sector afschalen (rest = cash)
         tot: dict[str, float] = {}
@@ -87,7 +100,7 @@ def stock_targets(snaps: dict[str, Snapshot], budget: float, top_n: int,
             if tot[sec(s)] > sector_cap and s.symbol in w:
                 w[s.symbol] = round(w[s.symbol] * sector_cap / tot[sec(s)], 4)
     for s in chosen:
-        why[s.symbol] = f"trend OK, momentum {s.mom_12_1:+.0%}, vol {s.vol_3m:.0%}"
+        why[s.symbol] = f"trend OK, momentum {lbl} {sc(s):+.0%}, vol {s.vol_3m:.0%}"
     return w, why
 
 
@@ -131,9 +144,12 @@ def targets(snaps: dict[str, Snapshot], strat: dict, stock_cap: float,
         why_m[benchmark] = f"marktfilter: {benchmark} onder 200d → {invested:.0%} belegd"
     cw, cwhy = crypto_targets(snaps, crypto_total, crypto_cap)
     sc = strat.get("sector_max_pct")
+    mv = strat.get("max_vol_pct")
     sw, swhy = stock_targets(snaps, invested - sum(cw.values()), strat.get("stock_top_n", 10),
                              stock_cap, held, strat.get("hold_buffer", 0), sectors,
-                             sc / 100 if sc else None)
+                             sc / 100 if sc else None, strat.get("score", "mom12"),
+                             {benchmark} if strat.get("exclude_benchmark", True) else set(),
+                             mv / 100 if mv else None)
     return {**sw, **cw}, {**swhy, **cwhy, **why_m}
 
 

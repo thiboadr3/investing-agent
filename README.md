@@ -5,9 +5,9 @@ AI-gedreven agent die een **paper**-portefeuille bij Alpaca beheert. Geen echt g
 ## Hoe het werkt
 
 0. **Dagritme** — tot 3 uur vóór de opening: onderzoek (data, regels, AI-filter) → kooplijst (plan). Vanaf 5 min na de opening: plan uitvoeren. Daarna enkel opvolging.
-1. **Data** — dagkoersen voor 30 aandelen/ETF's (Alpaca IEX, gratis, gecorrigeerd voor splitsingen/dividenden) en nieuws (Alpaca News). Crypto staat voorlopig **uit** (`crypto.symbols: []`).
+1. **Data** — elke ochtend een scan van álle Amerikaanse aandelen (NYSE/NASDAQ/AMEX, ook kleinere bedrijven; geen ETF's/fondsen/warrants), gefilterd op prijs ≥ $5 en ≥ $10 mln dagvolume (Alpaca SIP, gecorrigeerd voor splitsingen/dividenden) en nieuws (Alpaca News). Crypto staat voorlopig **uit** (`crypto.symbols: []`).
 2. **Regels** (`agent/rules.py`, zonder AI) bepalen de doelportefeuille:
-   - *Aandelen/ETF's*: enkel boven het 200-daagse gemiddelde én met positief 12-1-maandsmomentum; de sterkste 10; gewicht omgekeerd evenredig met volatiliteit, max 10 % per positie.
+   - *Aandelen*: enkel boven het 200-daagse gemiddelde én met positief 6-1-maandsmomentum, volatiliteit ≤ 150 %; de sterkste 5; gewicht omgekeerd evenredig met volatiliteit, max 20 % per positie. SPY is enkel de maatstaf.
    - *Crypto*: per munt enkel bij trend (boven 200d-gemiddelde en positief 3m-rendement). Beide munten in trend → 20 %, één → 10 %, geen → 0 %. Max 12 % per munt.
    - Samen 95 % belegd, 5 % cash.
 3. **AI-filter (Gemini) met debat** — per positie eerst een argument vóór en tegen, dan pas de beslissing; mag enkel **halveren of schrappen** bij een concrete rode vlag (nooit vergroten). Levert ook de bedrijfsfiche. Krijgt de **lessen** uit eerdere weekevaluaties als context. Faalt de AI, dan worden er die dag enkel verkopen gedaan.
