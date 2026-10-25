@@ -56,14 +56,28 @@ class Notifier:
         if not chat:
             return False
         try:
-            self._call("sendMessage", chat_id=chat, text=text[:4000], parse_mode="HTML",
-                       disable_web_page_preview=True)
+            for part in split(text):
+                self._call("sendMessage", chat_id=chat, text=part, parse_mode="HTML",
+                           disable_web_page_preview=True)
         except Exception as e:  # meldingen mogen de agent nooit laten crashen
             print(f"  Telegram-melding mislukt: {e}")
             return False
         if key:
             self.db.set(f"tg_sent_{key}", True)
         return True
+
+
+def split(text: str, limit: int = 3900) -> list[str]:
+    """Telegram aanvaardt max 4096 tekens: splits op regels (nooit midden in een HTML-tag)."""
+    parts, cur = [], ""
+    for line in text.split("\n"):
+        line = line[:limit]
+        if cur and len(cur) + len(line) + 1 > limit:
+            parts.append(cur)
+            cur = line
+        else:
+            cur = f"{cur}\n{line}" if cur else line
+    return parts + ([cur] if cur else [])
 
 
 def esc(s) -> str:

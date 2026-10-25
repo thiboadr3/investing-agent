@@ -163,16 +163,45 @@ class Agent:
             stop_file=config.STOP_FILE.exists(),
             price_as_of={s: v.as_of for s, v in snaps.items()})
 
-    def _execute(self, props, ctx, cycle_id: str, dry_run: bool, reason: str):
+    @staticmethod
+    def _briefs(symbols, snaps, why, ai_note, fiches, final_w) -> dict[str, dict]:
+        out = {}
+        for s in symbols:
+            f, sn, n = fiches.get(s, {}), snaps.get(s), ai_note.get(s) or {}
+            name = f.get("company") or (sn.name if sn else "") or s
+            for suffix in (" Common Stock", " Class A", " Ordinary Shares", " Common Shares"):
+                name = name.split(suffix)[0]
+            if final_w.get(s):
+                reason = f.get("bull") or why.get(s, "")
+            else:
+                reason = n.get("reason") or why.get(s, "") or "niet meer in de selectie"
+            out[s] = {"name": name.strip(", "), "what": f.get("what", ""), "why": reason,
+                      "risk": f.get("risk", "") if final_w.get(s) else ""}
+        return out
+
+    def _execute(self, props, ctx, cycle_id: str, dry_run: bool, reason: str,
+                 brief: dict | None = None):
         r = self.cfg.risk
         done, refused = [], []
+        brief = brief or {}
         try:
             self._execute_inner(props, ctx, cycle_id, dry_run, reason, r, done, refused)
         finally:
             if done or refused:
                 head = "🧪 <b>Testrun (niets geplaatst)</b>" if dry_run else "✅ <b>Orders geplaatst (paper)</b>"
-                lines = [head] + [f"{'🟢 koop' if s == 'buy' else '🔴 verkoop'} {esc(sym)} ${n:,.0f}"
-                                  for s, sym, n in done]
+                lines = [head]
+                for side, sym, n in done:
+                    b = brief.get(sym) or {}
+                    lines.append(f"\n{'🟢 <b>KOOP</b>' if side == 'buy' else '🔴 <b>VERKOOP</b>'} "
+                                 f"<b>{esc(sym)}</b> {esc(b.get('name', ''))} · ${n:,.0f}")
+                    if b.get("what") and side == "buy":
+                        lines.append(f"🏢 {esc(b['what'][:180])}")
+                    if b.get("why"):
+                        lines.append(f"💡 {esc(b['why'][:250])}")
+                    if b.get("risk") and side == "buy":
+                        lines.append(f"⚠️ {esc(b['risk'][:160])}")
+                if refused:
+                    lines.append("")
                 lines += [f"⛔ geweigerd {esc(sym)} ({esc(rule)})" for sym, rule in refused]
                 self.notify.send("\n".join(lines))
 
@@ -326,7 +355,10 @@ class Agent:
 
         plan = {"cycle": cycle_id, "built": now(), "weights": final_w, "rule_weights": rule_w,
                 "ai_ok": ai_ok, "free_weights": None,
-                "why": {s: why.get(s, "") for s in final_w}}
+                "why": {s: why.get(s, "") for s in final_w},
+                # korte uitleg per symbool voor de ordermelding (ook voor verkopen)
+                "brief": self._briefs(set(final_w) | set(pos) | set(rule_w), snaps, why,
+                                      ai_note, fiches, final_w)}
         self.db.set(f"plan_{cycle_id}", plan)
         top = sorted(final_w.items(), key=lambda kv: -kv[1])
         self.db.event("INFO", f"Plan {cycle_id}: {len(final_w)} doelposities "
@@ -387,7 +419,8 @@ class Agent:
                                    band=cfg.strategy.get("rebalance_band_pct", 0) / 100)
         self.db.event("INFO", f"Uitvoering {cycle_id}: {len(props)} orderkandidaten "
                               f"(plan van {plan['built']})")
-        self._execute(props, ctx, cycle_id, dry_run, "regels+ai" if plan["ai_ok"] else "regels")
+        self._execute(props, ctx, cycle_id, dry_run, "regels+ai" if plan["ai_ok"] else "regels",
+                      plan.get("brief"))
         self.db.set("last_analysis_dry" if dry_run else "last_analysis", cycle_id)
         if cfg.shadows.get("enabled", True):
             self.update_shadows(snaps, plan, acct.equity, cycle_id)

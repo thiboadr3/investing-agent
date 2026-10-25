@@ -31,3 +31,11 @@ def test_notifier_discovers_chat_and_dedupes(tmp_path, monkeypatch):
 
 def test_notifier_silent_without_token(tmp_path):
     assert Notifier(DB(tmp_path / "t.db"), token="", chat_id="").send("x") is False
+
+
+def test_split_long_message():
+    from agent.notify import split
+    text = "\n".join(f"<b>regel {i}</b> " + "x" * 200 for i in range(60))
+    parts = split(text)
+    assert len(parts) > 1 and all(len(p) <= 3900 for p in parts)
+    assert "\n".join(parts) == text
