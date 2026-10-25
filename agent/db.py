@@ -56,10 +56,17 @@ class DB:
         self.x("INSERT OR REPLACE INTO state VALUES (?,?)", (key, json.dumps(value)))
 
     # --- logging ---
+    on_error = None   # callback(message, detail) voor meldingen bij fouten
+
     def event(self, level: str, message: str, detail=None) -> None:
         self.x("INSERT INTO events VALUES (?,?,?,?)",
                (now(), level, message, json.dumps(detail, default=str) if detail else None))
         print(f"[{level}] {message}")
+        if level == "ERROR" and self.on_error:
+            try:
+                self.on_error(message, detail)
+            except Exception:
+                pass
 
     def order_exists(self, client_order_id: str) -> bool:
         return self.x("SELECT 1 FROM orders WHERE client_order_id=?",

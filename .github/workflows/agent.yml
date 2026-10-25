@@ -29,6 +29,8 @@ jobs:
       ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
       ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       # Standaard 'paper': orders op de Alpaca-PAPERrekening (nep-geld). Zet variabele TRADING_MODE
       # op 'dry_run' om enkel te loggen zonder iets te plaatsen. Live trading bestaat niet in deze code.
       TRADING_MODE: ${{ vars.TRADING_MODE }}
@@ -61,6 +63,18 @@ jobs:
           else FLAG=""; echo "Modus: PAPER (orders op paperrekening)"; fi
           if [ "$CMD" = "status" ] || [ "$CMD" = "report" ]; then python -m agent "$CMD"
           else python -m agent "$CMD" $FLAG; fi
+
+      - name: Melding bij mislukte run
+        if: failure() && env.TELEGRAM_BOT_TOKEN != ''
+        run: |
+          CHAT="$TELEGRAM_CHAT_ID"
+          if [ -z "$CHAT" ] && [ -f data/agent.db ]; then
+            CHAT=$(python -c "import sqlite3,json;r=sqlite3.connect('data/agent.db').execute(\"select value from state where key='telegram_chat_id'\").fetchone();print(json.loads(r[0]) if r else '')")
+          fi
+          [ -n "$CHAT" ] || exit 0
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            -d chat_id="$CHAT" \
+            --data-urlencode text="⚠️ Investing Agent: run mislukt. Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" > /dev/null
 
       - name: Logboek bewaren
         if: always()

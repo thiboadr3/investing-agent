@@ -35,6 +35,7 @@ class Account:
     cash: float
     trading_blocked: bool
     status: str
+    last_equity: float = 0.0   # waarde bij vorige slot
 
 
 class Broker:
@@ -50,7 +51,8 @@ class Broker:
     def account(self) -> Account:
         a = self.client.get_account()
         return Account(float(a.equity), float(a.cash),
-                       bool(a.trading_blocked or a.account_blocked), str(a.status))
+                       bool(a.trading_blocked or a.account_blocked), str(a.status),
+                       float(getattr(a, "last_equity", 0) or 0))
 
     def positions(self) -> dict[str, Position]:
         out = {}

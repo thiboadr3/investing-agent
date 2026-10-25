@@ -24,13 +24,23 @@ from . import ai, config, risk, rules, strategy
 from .broker import Broker
 from .data import MarketData
 from .db import DB, now
+from .notify import Notifier, esc
 from .shadow import NAMES, Shadows
 
 NY = ZoneInfo("America/New_York")
 SESSION_MIN = 390  # reguliere sessie 9:30–16:00 ET
 
 
+class _NoNotify:
+    enabled = False
+
+    def send(self, *a, **k):
+        return False
+
+
 class Agent:
+    notify = _NoNotify()   # wordt in __init__ vervangen door een echte Notifier
+
     def __init__(self, cfg: config.Config):
         self.cfg = cfg
         self.db = DB(config.DB_PATH)
@@ -38,6 +48,11 @@ class Agent:
         self.data = MarketData(cfg.alpaca_key, cfg.alpaca_secret)
         self._analyst = None
         self.shadows = Shadows(self.db, cfg.shadows.get("cost_pct", {}))
+        self.notify = Notifier(self.db)
+        day = datetime.now(NY).strftime("%Y%m%d")
+        self.db.on_error = lambda msg, detail: self.notify.send(
+            f"⚠️ <b>Investing Agent – fout</b>\n{esc(msg)}\n<code>{esc(str(detail or '')[:300])}</code>",
+            key=f"err_{day}_{abs(hash(msg)) % 10**8}")
 
     @property
     def analyst(self):
@@ -148,6 +163,18 @@ class Agent:
 
     def _execute(self, props, ctx, cycle_id: str, dry_run: bool, reason: str):
         r = self.cfg.risk
+        done, refused = [], []
+        try:
+            self._execute_inner(props, ctx, cycle_id, dry_run, reason, r, done, refused)
+        finally:
+            if done or refused:
+                head = "🧪 <b>Testrun (niets geplaatst)</b>" if dry_run else "✅ <b>Orders geplaatst (paper)</b>"
+                lines = [head] + [f"{'🟢 koop' if s == 'buy' else '🔴 verkoop'} {esc(sym)} ${n:,.0f}"
+                                  for s, sym, n in done]
+                lines += [f"⛔ geweigerd {esc(sym)} ({esc(rule)})" for sym, rule in refused]
+                self.notify.send("\n".join(lines))
+
+    def _execute_inner(self, props, ctx, cycle_id, dry_run, reason, r, done, refused):
         for p in props:
             cid = f"ia-{cycle_id}-{p.symbol.replace('/', '')}-{p.side}"
             if self.db.order_exists(cid) or self.broker.order_by_client_id(cid):
@@ -157,6 +184,7 @@ class Agent:
                 self.db.x("INSERT INTO rejections VALUES (?,?,?,?,?,?)",
                           (now(), cycle_id, p.symbol, p.side, rule, f"${p.notional:,.0f}"))
                 print(f"  geweigerd {p.side} {p.symbol} ${p.notional:,.0f}: {rule}")
+                refused.append((p.symbol, rule))
                 continue
             status, broker_id = "dry_run", None
             if not dry_run:
@@ -173,6 +201,7 @@ class Agent:
             self.db.x("INSERT INTO orders VALUES (?,?,?,?,?,?,?,?,?)",
                       (now(), cid, p.symbol, p.side, p.notional, None, status, broker_id, reason))
             print(f"  {status}: {p.side} {p.symbol} ${p.notional:,.0f}")
+            done.append((p.side, p.symbol, p.notional))
             ctx.orders_today += 0 if dry_run else 1
             ctx.open_order_symbols.add(p.symbol)
             if p.side == "buy":
@@ -250,6 +279,13 @@ class Agent:
                               f"({sum(final_w.values()):.0%} belegd), AI-filter "
                               f"{'OK' if ai_ok else 'MISLUKT'}: "
                               + ", ".join(f"{s} {w:.1%}" for s, w in top))
+        lines = [f"📋 <b>Plan {cycle_id[6:]}-{cycle_id[4:6]}</b> · {len(final_w)} posities, "
+                 f"{sum(final_w.values()):.0%} belegd · AI-filter {'OK' if ai_ok else 'MISLUKT (vandaag enkel verkopen)'}",
+                 ", ".join(f"{esc(s)} {w:.0%}" for s, w in top)]
+        for n in notes:
+            lines.append(f"✂️ {esc(n['symbol'])} {'geschrapt' if n['factor'] == 0 else 'gehalveerd'}: "
+                         f"{esc(n['reason'][:200])}")
+        self.notify.send("\n".join(lines), key=f"plan_{cycle_id}_{int(ai_ok)}")
         # schaduw 'AI vrij' NA het bewaren van het plan: mag het echte plan nooit tegenhouden
         free_w = None
         if cfg.shadows.get("enabled", True):
@@ -398,6 +434,10 @@ class Agent:
             else:
                 print(f"Beurs gesloten (volgende opening {clock.next_open}).")
             self.crypto_exit_check(dry_run)
+            try:
+                self.daily_close_note(clock)
+            except Exception as e:
+                self.db.event("WARN", "Dagafsluiting niet verstuurd", str(e))
             self.weekly_review()
         self.report()
         try:
@@ -491,6 +531,10 @@ class Agent:
         prev = out.read_text().split("\n", 2)[2] if out.exists() else ""
         out.write_text("# Investing Agent — weekevaluaties\n\n" + "\n".join(md) + "\n" + prev)
         self.db.event("INFO", f"Weekevaluatie {week}: {len(rv['lessons'])} lessen")
+        self.notify.send(f"🗓 <b>Weekevaluatie {week}</b>\n{esc(rv['summary'][:1200])}\n\n<b>Lessen</b>\n"
+                         + "\n".join(f"• {esc(x)}" for x in rv["lessons"])
+                         + "\n\nhttps://github.com/thiboadr3/investing-agent/blob/state/WEEKLY.md",
+                         key=f"review_{week}")
 
     def portfolio_overview(self, path="reports/PORTFOLIO.md"):
         """Leesbaar overzicht per positie: wat, waarom, risico, resultaat, nieuws, links."""
@@ -564,6 +608,29 @@ class Agent:
         out.write_text("\n".join(lines) + "\n")
         return out
 
+    def daily_close_note(self, clock):
+        """Eén korte dagsamenvatting na de sluiting (eerste run na 16:00 New York)."""
+        nyt = datetime.now(NY)
+        today = nyt.strftime("%Y%m%d")
+        if clock.is_open or nyt.weekday() >= 5 or nyt.hour < 16 or not self.notify.enabled:
+            return
+        if self.db.get("last_analysis") != today and self.db.get("last_analysis_dry") != today:
+            return   # geen handelsdag voor de agent (bv. feestdag)
+        acct = self.broker.account()
+        pos = self.broker.positions()
+        first = self.db.x("SELECT equity FROM snapshots ORDER BY ts LIMIT 1").fetchone()
+        start = first[0] if first else acct.equity
+        day = acct.equity / acct.last_equity - 1 if acct.last_equity else 0
+        movers = sorted(pos.values(), key=lambda p: p.unrealized_plpc)
+        lines = [f"📊 <b>Dagafsluiting {nyt:%d-%m}</b>",
+                 f"Waarde ${acct.equity:,.0f} · vandaag {day:+.2%} · totaal {acct.equity / start - 1:+.2%}"]
+        if movers:
+            best, worst = movers[-1], movers[0]
+            lines.append(f"Beste: {esc(best.symbol)} {best.unrealized_plpc:+.1%} · "
+                         f"zwakste: {esc(worst.symbol)} {worst.unrealized_plpc:+.1%} (sinds aankoop)")
+        lines.append("https://github.com/thiboadr3/investing-agent/blob/state/PORTFOLIO.md")
+        self.notify.send("\n".join(lines), key=f"close_{today}")
+
     def report(self):
         rows = self.db.x("SELECT equity FROM snapshots ORDER BY ts").fetchall()
         real = None
@@ -611,7 +678,8 @@ class Agent:
 
 def main():
     ap = argparse.ArgumentParser(prog="agent")
-    ap.add_argument("cmd", choices=["status", "once", "tick", "report", "overview", "review", "run"])
+    ap.add_argument("cmd", choices=["status", "once", "tick", "report", "overview", "review",
+                                    "notify-test", "run"])
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--ignore-market-hours", action="store_true")
     a = ap.parse_args()
@@ -622,6 +690,10 @@ def main():
         agent.status()
     elif a.cmd == "report":
         agent.report()
+    elif a.cmd == "notify-test":
+        ok = agent.notify.send("👋 <b>Investing Agent</b> is verbonden met Telegram. "
+                               "Je krijgt hier plannen, orders, fouten en weekevaluaties.")
+        print("Telegram:", "verstuurd" if ok else "NIET verstuurd (token/chat ontbreekt?)")
     elif a.cmd == "review":
         agent.weekly_review(force=True)
     elif a.cmd == "overview":
