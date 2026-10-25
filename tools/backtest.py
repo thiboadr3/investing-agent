@@ -118,10 +118,20 @@ class Variant:
     min_order: float = 100.0
     band: float = 0.0             # enkel bijsturen als afwijking > band × portefeuille (bv. 0.03)
     buffer: int = 0               # houd bestaande posities zolang ze in top (N + buffer) staan
+    sector_cap: float | None = None   # max gewicht per sector (bv. 0.25)
+    market_filter: bool = False   # SPY onder 200d -> enkel `bear_invested` belegd
+    bear_invested: float = 0.30
 
 
-def simulate(v: Variant, days, syms, o, c, spy, start_i, end_i, start_value=10_000.0):
+def simulate(v: Variant, days, syms, o, c, spy, start_i, end_i, start_value=10_000.0,
+             members=None, sectors=None):
+    """members: optioneel per dag de set symbolen die toen in de index zaten (zonder
+    voorkennis); sectors: symbool -> sector voor de sectorlimiet."""
     ind = indicators(c, v.sma_days, v.mom_days)
+    spy_sma = np.full(len(spy), np.nan)
+    if len(spy) >= 200:
+        cs = np.cumsum(spy)
+        spy_sma[199:] = (cs[199:] - np.concatenate([[0], cs[:-200]])) / 200
     N = len(syms)
     cash, qty = start_value, np.zeros(N)
     peak, pause_left = start_value, 0
@@ -150,8 +160,11 @@ def simulate(v: Variant, days, syms, o, c, spy, start_i, end_i, start_value=10_0
         last_period = period
 
         snaps = {}
+        mem = members[t] if members is not None else None
         for j, s in enumerate(syms):
             if np.isnan(c[t, j]) or not ind["sma_ok"][t, j]:
+                continue
+            if mem is not None and s not in mem:
                 continue
             snaps[s] = Snapshot(s, c[t, j], None, None,
                                 None if np.isnan(ind["r3m"][t, j]) else ind["r3m"][t, j],
@@ -159,7 +172,11 @@ def simulate(v: Variant, days, syms, o, c, spy, start_i, end_i, start_value=10_0
                                 None if np.isnan(ind["vol"][t, j]) else ind["vol"][t, j],
                                 None if np.isnan(ind["mom"][t, j]) else ind["mom"][t, j], False)
         held = {syms[j] for j in range(N) if qty[j] > 1e-9}
-        w, _ = rules.stock_targets(snaps, v.invested, v.top_n, v.cap, held, v.buffer)
+        invested = v.invested
+        if v.market_filter and not np.isnan(spy_sma[t]) and spy[t] < spy_sma[t]:
+            invested = v.bear_invested
+        w, _ = rules.stock_targets(snaps, invested, v.top_n, v.cap, held, v.buffer,
+                                   sectors, v.sector_cap)
 
         # uitvoering op opening t+1: eerst verkopen, dan kopen
         op = o[t + 1]

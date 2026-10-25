@@ -51,7 +51,7 @@ strategy:
   stock_top_n: 10             # sterkste N aandelen/ETF's
   hold_buffer: 10             # bestaande positie houden zolang ze in top (N + buffer) staat (minder omzet)
   rebalance_band_pct: 3       # bestaande posities pas bijsturen bij > 3% afwijking (backtest: veel minder kosten)
-  sector_max_pct: 25          # max per sector (bv. energie); sectoren in agent/sectors.json
+  sector_max_pct: null        # UIT: eerlijke backtest (S&P 500) toonde lager rendement met 25%; bv. 25 of 40 om aan te zetten
   market_filter: false        # SPY onder 200d -> minder belegd (eerst backtesten)
   bear_invested_pct: 30       # belegd deel als de marktfilter aanslaat
   trend_sma_days: 200         # enkel bezitten boven dit gemiddelde

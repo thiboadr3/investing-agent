@@ -1,6 +1,6 @@
 # Backtest regelstrategie
 
-_Gegenereerd 2026-10-23. Dezelfde regels als de agent (`agent/rules.py`); plan op slotkoers, uitvoering op opening volgende dag; kosten 0,05% per transactie; startbedrag $10.000; pauzeregel −15% met reset na 20 beursdagen._
+_Gegenereerd 2026-10-25. Dezelfde regels als de agent (`agent/rules.py`); plan op slotkoers, uitvoering op opening volgende dag; kosten 0,05% per transactie; startbedrag $10.000; pauzeregel −15% met reset na 20 beursdagen._
 
 **Waarschuwing:** de aandelenlijsten zijn met kennis van vandaag gekozen (overlevingsbias), dus de resultaten zijn optimistisch. Dividenden zitten in de koersen (gecorrigeerd).
 
