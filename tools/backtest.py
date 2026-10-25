@@ -98,7 +98,15 @@ def indicators(c, sma_days=200, mom_days=252, skip=21):
     vol = np.full((T, N), np.nan)
     vol[63:] = np.sqrt((csq[63:] - csq[:-63]) / 63 * 252)
     above = c > sma
-    return {"r3m": r3m, "mom": mom, "above": above, "vol": vol, "sma_ok": ~np.isnan(sma)}
+    mom6 = np.full((T, N), np.nan)
+    mom6[126:] = c[126 - skip:T - skip] / c[:T - 126] - 1
+    hi = np.full((T, N), np.nan)          # nabijheid van 52-weken hoogste koers
+    for i in range(252, T):
+        hi[i] = c[i] / np.nanmax(c[i - 251:i + 1], axis=0)
+    sma50 = np.full((T, N), np.nan)
+    sma50[49:] = (csum[49:] - np.vstack([np.zeros((1, N)), csum[:-50]])) / 50
+    return {"r3m": r3m, "mom": mom, "above": above, "vol": vol, "sma_ok": ~np.isnan(sma),
+            "mom6": mom6, "high52": hi, "above50": c > sma50}
 
 
 # ---------------------------------------------------------------- simulatie
@@ -121,6 +129,8 @@ class Variant:
     sector_cap: float | None = None   # max gewicht per sector (bv. 0.25)
     market_filter: bool = False   # SPY onder 200d -> enkel `bear_invested` belegd
     bear_invested: float = 0.30
+    score: str = "mom12"          # mom12 | mom6 | high52 | mom12_high52 | mom12_risk
+    need_above50: bool = False    # extra: ook boven 50d-gemiddelde
 
 
 def simulate(v: Variant, days, syms, o, c, spy, start_i, end_i, start_value=10_000.0,
@@ -166,11 +176,22 @@ def simulate(v: Variant, days, syms, o, c, spy, start_i, end_i, start_value=10_0
                 continue
             if mem is not None and s not in mem:
                 continue
+            m12, m6, h52, vol = ind["mom"][t, j], ind["mom6"][t, j], ind["high52"][t, j], ind["vol"][t, j]
+            if v.score == "mom12":
+                score = m12
+            elif v.score == "mom6":
+                score = m6
+            elif v.score == "high52":
+                score = h52 - 0.75 if not np.isnan(h52) else np.nan
+            elif v.score == "mom12_high52":
+                score = m12 * h52 if (m12 > 0 and not np.isnan(h52)) else np.nan
+            else:  # mom12_risk: momentum per eenheid risico
+                score = m12 / vol if (vol and vol > 0 and m12 > 0) else np.nan
+            above = bool(ind["above"][t, j]) and (not v.need_above50 or bool(ind["above50"][t, j]))
             snaps[s] = Snapshot(s, c[t, j], None, None,
                                 None if np.isnan(ind["r3m"][t, j]) else ind["r3m"][t, j],
-                                None, bool(ind["above"][t, j]),
-                                None if np.isnan(ind["vol"][t, j]) else ind["vol"][t, j],
-                                None if np.isnan(ind["mom"][t, j]) else ind["mom"][t, j], False)
+                                None, above, None if np.isnan(vol) else vol,
+                                None if np.isnan(score) else float(score), False)
         held = {syms[j] for j in range(N) if qty[j] > 1e-9}
         invested = v.invested
         if v.market_filter and not np.isnan(spy_sma[t]) and spy[t] < spy_sma[t]:
