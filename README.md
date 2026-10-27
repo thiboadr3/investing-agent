@@ -1,18 +1,18 @@
 # Investing Agent — portefeuille (paper)
 
-_Bijgewerkt 2026-10-26 17:06 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
+_Bijgewerkt 2026-10-26 20:37 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
 
-**Waarde:** $10,054.36 · **cash:** $1,520.57 · **terugval vanaf piek:** 0.0%
+**Waarde:** $10,055.50 · **cash:** $1,520.57 · **terugval vanaf piek:** 0.0%
 
 | Symbool | Bedrijf | Gewicht | Waarde | Aankoopprijs | Resultaat |
 |---|---|---:|---:|---:|---:|
 | [LLY](#lly) | Eli Lilly and Company | 14.9% | $1,503 | $1,281.19 | +0.1% ($+2) |
-| [CRWD](#crwd) | CrowdStrike Holdings, Inc. | 14.1% | $1,421 | $259.04 | +1.1% ($+15) |
+| [CRWD](#crwd) | CrowdStrike Holdings, Inc. | 14.2% | $1,425 | $259.04 | +1.4% ($+20) |
 | [TEAM](#team) | Atlassian Corporation | 14.0% | $1,408 | $222.98 | +0.2% ($+3) |
-| [IOVA](#iova) | Iovance Biotherapeutics, Inc. | 11.7% | $1,179 | $14.07 | -2.1% ($-26) |
-| [OKTA](#okta) | Okta, Inc. | 10.2% | $1,028 | $215.75 | +2.4% ($+24) |
-| [CVX](#cvx) | Chevron Corporation | 10.0% | $1,005 | $230.75 | +0.5% ($+5) |
-| [AAPL](#aapl) | Apple Inc. | 9.8% | $989 | $347.68 | -1.1% ($-11) |
+| [IOVA](#iova) | Iovance Biotherapeutics, Inc. | 11.7% | $1,181 | $14.07 | -2.0% ($-24) |
+| [OKTA](#okta) | Okta, Inc. | 10.2% | $1,026 | $215.75 | +2.1% ($+22) |
+| [CVX](#cvx) | Chevron Corporation | 10.0% | $1,004 | $230.75 | +0.4% ($+4) |
+| [AAPL](#aapl) | Apple Inc. | 9.8% | $988 | $347.68 | -1.2% ($-12) |
 
 ## Details per positie
 
