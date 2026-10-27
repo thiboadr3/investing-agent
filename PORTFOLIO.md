@@ -1,44 +1,19 @@
 # Investing Agent — portefeuille (paper)
 
-_Bijgewerkt 2026-10-26 20:37 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
+_Bijgewerkt 2026-10-27 11:38 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
 
-**Waarde:** $10,055.50 · **cash:** $1,520.57 · **terugval vanaf piek:** 0.0%
+**Waarde:** $10,158.16 · **cash:** $4,598.12 · **terugval vanaf piek:** 0.0%
 
 | Symbool | Bedrijf | Gewicht | Waarde | Aankoopprijs | Resultaat |
 |---|---|---:|---:|---:|---:|
-| [LLY](#lly) | Eli Lilly and Company | 14.9% | $1,503 | $1,281.19 | +0.1% ($+2) |
-| [CRWD](#crwd) | CrowdStrike Holdings, Inc. | 14.2% | $1,425 | $259.04 | +1.4% ($+20) |
-| [TEAM](#team) | Atlassian Corporation | 14.0% | $1,408 | $222.98 | +0.2% ($+3) |
-| [IOVA](#iova) | Iovance Biotherapeutics, Inc. | 11.7% | $1,181 | $14.07 | -2.0% ($-24) |
-| [OKTA](#okta) | Okta, Inc. | 10.2% | $1,026 | $215.75 | +2.1% ($+22) |
-| [CVX](#cvx) | Chevron Corporation | 10.0% | $1,004 | $230.75 | +0.4% ($+4) |
-| [AAPL](#aapl) | Apple Inc. | 9.8% | $988 | $347.68 | -1.2% ($-12) |
+| [TEAM](#team) | Atlassian Corporation | 13.7% | $1,391 | $222.98 | -1.1% ($-15) |
+| [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 12.3% | $1,253 | $14.07 | +4.0% ($+48) |
+| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 10.3% | $1,047 | $215.75 | +4.3% ($+43) |
+| [CRWD](#crwd) | CrowdStrike Holdings, Inc. | 9.0% | $913 | $259.04 | +2.9% ($+26) |
+| [AAPL](#aapl) | Apple Inc. | 6.4% | $651 | $347.68 | -0.2% ($-1) |
+| [CVX](#cvx) | Chevron Corporation | 3.0% | $305 | $230.75 | -0.9% ($-3) |
 
 ## Details per positie
-
-### LLY
-**Eli Lilly and Company** — gekocht sinds 2026-10-23
-
-- **Wat:** Farmaceutisch concern dat wereldwijd innovatieve geneesmiddelen ontwikkelt voor diabetes, obesitas, oncologie en immunologie.
-- **Waarom gekozen (regels):** momentum 6-1 +34%, buiten top 5
-- **Argument voor:** Uitzonderlijke commerciële vraag naar GLP-1/GIP-producten en bemoedigende ESMO-oncologiedata zorgen voor aanhoudende omzet- en winstversnelling.
-- **Argument tegen:** Hoge waarderingsmultiples maken het aandeel kwetsbaar voor onverwachte tegenslagen in de toeleveringsketen of klinische studies.
-- **Cijfers bij aankoop:** momentum 12-1m +46%, 3m +6%, volatiliteit 31%
-- **Risico om op te volgen:** Toenemende druk op geneesmiddelenprijzen en vergoedingssystemen vanuit overheden.
-- **Recent nieuws:** [Bernstein Raises Price Target for Eli Lilly](https://www.moomoo.com/hans/news/flash/1002343208/eli-lilly-bernstein-raises-target-price-to-1450-from-1385) · [Traders Are Pricing a 11% Swing In Intel Ahead of Earnings](https://www.benzinga.com/markets/options/26/10/62584013/traders-are-pricing-a-11-swing-in-intel-ahead-of-earnings) · [Reported Saturday, Lilly Presented First Phase 1 Data For Sofe-M Plus Bevacizuma](https://www.benzinga.com/news/26/10/62582123/reported-saturday-lilly-presented-first-phase-1-data-sofe-m-plus-bevacizumab-platinum-sensitive-ovar)
-- **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/LLY) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=LLY) · [Finviz](https://finviz.com/quote.ashx?t=LLY)
-
-### CRWD
-**CrowdStrike Holdings, Inc.** — gekocht sinds 2026-10-26
-
-- **Wat:** Aanbieder van cloud-native cyberbeveiligingsoplossingen gericht op endpoint-, cloud- en identiteitsbescherming via het Falcon-platform.
-- **Waarom gekozen (regels):** momentum 6-1 +132%, buiten top 5
-- **Argument voor:** Mission-critical karakter van cybersecurity beschermt de kasstromen, terwijl het aandeel krachtig herstelt boven het 200-daags gemiddelde.
-- **Argument tegen:** Steile waardering vereist aanhoudende vlekkeloze kwartaalcijfers om het koersniveau te rechtvaardigen.
-- **Cijfers bij aankoop:** momentum 12-1m +108%, 3m +43%, volatiliteit 73%
-- **Risico om op te volgen:** Intensieve concurrentie van grote gevestigde platformleveranciers in de enterprise-beveiligingsmarkt.
-- **Recent nieuws:** [Anthropic’s Claude Reportedly Bypassed Georgia Vote-Data Paywall, Prompting New ](https://www.benzinga.com/markets/tech/26/10/62582282/anthropics-claude-reportedly-bypassed-georgia-vote-data-paywall-prompting-new-ai-safeguard-concerns-ahead-of-midterms) · [SecurityScorecard MAX Now Available for Purchase in CrowdStrike Marketplace](https://stockanalysis.com/private/securityscorecard/) · [SailPoint Expands Partnership with CrowdStrike for Identity Intelligence Integra](https://www.otcmarkets.com/stock/SAIL/news/SailPoint-Announces-Integration-with-CrowdStrike-Falcon-Next-Gen-SIEM?e&id=3529621)
-- **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/CRWD) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=CRWD) · [Finviz](https://finviz.com/quote.ashx?t=CRWD)
 
 ### TEAM
 **Atlassian Corporation** — gekocht sinds 2026-10-26
@@ -52,38 +27,31 @@ _Bijgewerkt 2026-10-26 20:37 New York-tijd. Paperrekening, geen echt geld. Geen 
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/TEAM) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=TEAM) · [Finviz](https://finviz.com/quote.ashx?t=TEAM)
 
 ### IOVA
-**Iovance Biotherapeutics, Inc.** — gekocht sinds 2026-10-26
+**Iovance Biotherapeutics, Inc. Common Stock** — gekocht sinds 2026-10-26
 
-- **Wat:** Biotechnologiebedrijf dat celtherapieën ontwikkelt op basis van tumorinfiltrerende lymfocyten (TIL) ter bestrijding van solide tumoren.
-- **Waarom gekozen (regels):** trend OK, momentum 6-1 +214%, vol 130%
-- **Argument voor:** Commerciële koploper in TIL-therapie met uitzonderlijk krachtig recent koersmomentum (+30% op 1 maand, +187% op 3 maanden).
-- **Argument tegen:** Zeer hoge volatiliteit (130%) en aanzienlijke complexiteit bij de productie en toediening van gepersonaliseerde celtherapieën.
-- **Cijfers bij aankoop:** momentum 12-1m +402%, 3m +188%, volatiliteit 130%
-- **Risico om op te volgen:** Tragere opschaling of behandelcapaciteit bij gespecialiseerde oncologische zorgcentra.
+- **Waarom gekozen (regels):** trend OK, momentum 6-1 +225%, vol 130%
+- **Cijfers bij aankoop:** momentum 12-1m +388%, 3m +220%, volatiliteit 130%
+- **Recent nieuws:** [Iovance Biotherapeutics to Report Third Quarter 2026 Financial Results on Novemb](https://www.globenewswire.com/news-release/2026/10/27/3388814/0/en/iovance-biotherapeutics-to-report-third-quarter-2026-financial-results-and-corporate-updates-on-thursday-november-5-2026.html) · [H.C. Wainwright Maintains Buy Rating for Iovance Biotherapeutics](https://www.moomoo.com/hans/news/post/1002344149/hc-wainwright-maintains-iovance-biotherapeutics-iovaus-with-buy-rating-maintains) · [Iovance Biotherapeutics Reports Final Phase 2 Data for Lifileucel Combination in](https://markets.businessinsider.com/news/stocks/immuno-oncology-emerges-as-a-major-force-in-the-global-cancer-treatment-market-1036665454)
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/IOVA) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=IOVA) · [Finviz](https://finviz.com/quote.ashx?t=IOVA)
 
 ### OKTA
-**Okta, Inc.** — gekocht sinds 2026-10-26
+**Okta, Inc. Class A Common Stock** — gekocht sinds 2026-10-26
 
-- **Wat:** Leverancier van identiteits- en toegangsbeheersoftware in de cloud voor personeels- en klanttoepassingen.
-- **Waarom gekozen (regels):** momentum 6-1 +172%, buiten top 5
-- **Argument voor:** Krachtige ommekeer en trendpersistentie (+172% op 6-1m) ondersteund door aanhoudende vraag naar Zero Trust-beveiliging.
-- **Argument tegen:** Langere verkoopcycli bij zakelijke klanten door kritische evaluatie van software-uitgaven.
-- **Cijfers bij aankoop:** momentum 12-1m +137%, 3m +55%, volatiliteit 81%
-- **Risico om op te volgen:** Vertraging in de acceptatie van nieuwe identiteitsmodules door enterprise-klanten.
+- **Waarom gekozen (regels):** trend OK, momentum 6-1 +165%, vol 81%
+- **Cijfers bij aankoop:** momentum 12-1m +127%, 3m +64%, volatiliteit 81%
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/OKTA) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=OKTA) · [Finviz](https://finviz.com/quote.ashx?t=OKTA)
 
-### CVX
-**Chevron Corporation** — gekocht sinds 2026-10-23
+### CRWD
+**CrowdStrike Holdings, Inc.** — gekocht sinds 2026-10-26
 
-- **Wat:** Geïntegreerde energiemultinational actief in olie- en gaswinning, raffinage, chemie en wereldwijd energietransport.
-- **Waarom gekozen (regels):** momentum 6-1 +13%, buiten top 5
-- **Argument voor:** Directe begunstigde van stijgende olieprijzen bij geopolitieke spanningen, ondersteund door sterke aandeelhoudersbeloningen en Permian-efficiëntie.
-- **Argument tegen:** Directe blootstelling aan grondstoffenprijzen die snel kunnen corrigeren bij geopolitieke ontspanning.
-- **Cijfers bij aankoop:** momentum 12-1m +37%, 3m +24%, volatiliteit 24%
-- **Risico om op te volgen:** Plotselinge daling van ruwe olie door OPEC+-beleidswijzigingen of wereldwijde vraagafname.
-- **Recent nieuws:** [Trump Said the 'Quiet Part' Out Loud on Gas Prices, Says Bernie Sanders: His Bil](https://www.benzinga.com/news/politics/26/10/62581823/bernie-sanders-trump-gas-oil) · [Gavin Newsom, Pete Buttigieg Slam Trump Over Gas Prices, Big Oil—Analyst Says Di](https://www.benzinga.com/news/politics/26/10/62581503/gavin-newsom-pete-buttigieg-slam-trump-over-gas-prices-big-oil-analyst-says-diesel-is-2-72-gallon-higher) · [Chevron Confirms Discovery at Nargis-2 Appraisal Well Offshore Egypt](https://www.manilatimes.net/2026/10/26/business/foreign-business/chevron-discovers-high-quality-reservoirs-in-egypt/2453530)
-- **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/CVX) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=CVX) · [Finviz](https://finviz.com/quote.ashx?t=CVX)
+- **Wat:** Aanbieder van cloud-native cyberbeveiligingsoplossingen gericht op endpoint-, cloud- en identiteitsbescherming via het Falcon-platform.
+- **Waarom gekozen (regels):** momentum 6-1 +132%, buiten top 5
+- **Argument voor:** Mission-critical karakter van cybersecurity beschermt de kasstromen, terwijl het aandeel krachtig herstelt boven het 200-daags gemiddelde.
+- **Argument tegen:** Steile waardering vereist aanhoudende vlekkeloze kwartaalcijfers om het koersniveau te rechtvaardigen.
+- **Cijfers bij aankoop:** momentum 12-1m +108%, 3m +43%, volatiliteit 73%
+- **Risico om op te volgen:** Intensieve concurrentie van grote gevestigde platformleveranciers in de enterprise-beveiligingsmarkt.
+- **Recent nieuws:** [10 Information Technology Stocks Whale Activity In Today’s Session](https://www.benzinga.com/markets/options/26/10/62599141/10-information-technology-stocks-whale-activity-today-s-session) · [Blackmail, Deception, Shutdown Resistance: Anthropic Lists AI Risks Ahead of IPO](https://www.benzinga.com/markets/tech/26/10/62598931/blackmail-deception-shutdown-resistance-anthropic-lists-ai-risks-ahead-of-ipo) · [Nvidia's AI Safety Push Could Slow Things Down by 25%, Analyst Warns](https://www.benzinga.com/trading-ideas/long-ideas/26/10/62597871/nvidia-ai-safety-speed-cost)
+- **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/CRWD) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=CRWD) · [Finviz](https://finviz.com/quote.ashx?t=CRWD)
 
 ### AAPL
 **Apple Inc.** — gekocht sinds 2026-10-23
@@ -94,13 +62,30 @@ _Bijgewerkt 2026-10-26 20:37 New York-tijd. Paperrekening, geen echt geld. Geen 
 - **Argument tegen:** Lange vervangingscycli van hardware en toenemende regelgevende druk op inkomsten uit de App Store.
 - **Cijfers bij aankoop:** momentum 12-1m +30%, 3m +3%, volatiliteit 24%
 - **Risico om op te volgen:** Geopolitieke fricties en toeleveringsrisico's rond internationale productiefaciliteiten.
-- **Recent nieuws:** [Jefferies Raises Apple Price Target](https://www.marketscreener.com/news/jefferies-raises-apple-price-target-to-270-62-from-263-66-ce785cdcd88df125) · [Apple's $2,000 Foldable iPhone Sparks Buying Frenzy](https://www.benzinga.com/markets/tech/26/10/62583947/apples-2000-foldable-iphone-sparks-buying-frenzy) · [Apollo's Torsten Slok Warns AI Gains Are Concentrated in Mag 7 as S&P 493 Sees ‘](https://www.benzinga.com/markets/tech/26/10/62583600/apollos-torsten-slok-warns-ai-gains-are-concentrated-in-mag-7-as-sp-493-sees-no-signs-of-productivity-boost-zero-financial-payoff)
+- **Recent nieuws:** [Growth Leads Sectors In Tuesday Trading As Defensives Trail](https://www.benzinga.com/etfs/sector-etfs/26/10/62623952/growth-leads-sectors-in-tuesday-trading-as-defensives-trail) · [Apple Updates iMac and 14-inch MacBook Pro with M6 and N1 Chips](https://appleosophy.com/wire/fslgb0p/) · [Apple Rolls Out New 14-Inch MacBook Pro, iMac With M6,](https://www.benzinga.com/m/26/10/62618447/apple-rolls-out-new-14-inch-macbook-pro-imac-m6)
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/AAPL) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=AAPL) · [Finviz](https://finviz.com/quote.ashx?t=AAPL)
+
+### CVX
+**Chevron Corporation** — gekocht sinds 2026-10-23
+
+- **Wat:** Geïntegreerde energiemultinational actief in olie- en gaswinning, raffinage, chemie en wereldwijd energietransport.
+- **Waarom gekozen (regels):** momentum 6-1 +13%, buiten top 5
+- **Argument voor:** Directe begunstigde van stijgende olieprijzen bij geopolitieke spanningen, ondersteund door sterke aandeelhoudersbeloningen en Permian-efficiëntie.
+- **Argument tegen:** Directe blootstelling aan grondstoffenprijzen die snel kunnen corrigeren bij geopolitieke ontspanning.
+- **Cijfers bij aankoop:** momentum 12-1m +37%, 3m +24%, volatiliteit 24%
+- **Risico om op te volgen:** Plotselinge daling van ruwe olie door OPEC+-beleidswijzigingen of wereldwijde vraagafname.
+- **Recent nieuws:** [Growth Leads Sectors In Tuesday Trading As Defensives Trail](https://www.benzinga.com/etfs/sector-etfs/26/10/62623952/growth-leads-sectors-in-tuesday-trading-as-defensives-trail) · [Caltex Singapore Launches 90th Anniversary Fuel Giveaway](https://iharare.com/media-outreach/2026/10/27/493306/caltex-singapore-celebrates-90-years-with-free-fuel-and-reward-giveaways/) · [Chevron's Australian Business Signs Long-Term Natural Gas Deal Starting in 2028](https://www.benzinga.com/markets/large-cap/26/10/62617814/chevrons-australian-business-signs-long-term-natural-gas-deal-starting-in-2028)
+- **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/CVX) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=CVX) · [Finviz](https://finviz.com/quote.ashx?t=CVX)
 
 ## Laatste orders
 
 | Tijd (UTC) | Actie | Symbool | Bedrag | Status | Reden |
 |---|---|---|---:|---|---|
+| 2026-10-27T15:38 | verkoop | AAPL | $998 | submitted | regels |
+| 2026-10-27T15:38 | verkoop | CRWD | $1,447 | submitted | regels |
+| 2026-10-27T15:38 | verkoop | CVX | $991 | submitted | regels |
+| 2026-10-27T15:38 | verkoop | LLY | $1,512 | submitted | regels |
+| 2026-10-27T15:38 | verkoop | TEAM | $1,391 | submitted | regels |
 | 2026-10-26T13:44 | koop | CRWD | $1,406 | filled | regels+ai |
 | 2026-10-26T13:44 | koop | IOVA | $1,205 | filled | regels+ai |
 | 2026-10-26T13:44 | koop | LLY | $677 | filled | regels+ai |
@@ -116,8 +101,3 @@ _Bijgewerkt 2026-10-26 20:37 New York-tijd. Paperrekening, geen echt geld. Geen 
 | 2026-10-23T14:31 | koop | CVX | $1,000 | filled | regels+ai |
 | 2026-10-23T14:31 | koop | JNJ | $1,000 | filled | regels+ai |
 | 2026-10-23T14:31 | koop | KO | $1,000 | filled | regels+ai |
-| 2026-10-23T14:31 | koop | LLY | $824 | filled | regels+ai |
-| 2026-10-23T14:31 | koop | NVDA | $703 | filled | regels+ai |
-| 2026-10-23T14:31 | koop | QQQ | $1,000 | filled | regels+ai |
-| 2026-10-23T14:31 | koop | XLE | $1,000 | filled | regels+ai |
-| 2026-10-23T14:31 | koop | XLK | $973 | filled | regels+ai |
