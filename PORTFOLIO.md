@@ -1,29 +1,30 @@
 # Investing Agent — portefeuille (paper)
 
-_Bijgewerkt 2026-10-27 19:52 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
+_Bijgewerkt 2026-10-28 12:23 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
 
-**Waarde:** $10,156.17 · **cash:** $7,857.50 · **terugval vanaf piek:** 0.0%
+**Waarde:** $10,152.30 · **cash:** $7,857.35 · **terugval vanaf piek:** 0.1%
 
 | Symbool | Bedrijf | Gewicht | Waarde | Aankoopprijs | Resultaat |
 |---|---|---:|---:|---:|---:|
-| [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 12.2% | $1,243 | $14.07 | +3.2% ($+38) |
-| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 10.4% | $1,056 | $215.75 | +5.1% ($+52) |
+| [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 12.4% | $1,261 | $14.07 | +4.7% ($+56) |
+| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 10.2% | $1,034 | $215.75 | +3.0% ($+30) |
 
 ## Details per positie
 
 ### IOVA
 **Iovance Biotherapeutics, Inc. Common Stock** — gekocht sinds 2026-10-26
 
-- **Waarom gekozen (regels):** trend OK, momentum 6-1 +225%, vol 130%
-- **Cijfers bij aankoop:** momentum 12-1m +388%, 3m +220%, volatiliteit 130%
+- **Waarom gekozen (regels):** trend OK, momentum 6-1 +337%, vol 130%
+- **Cijfers bij aankoop:** momentum 12-1m +526%, 3m +215%, volatiliteit 130%
 - **Recent nieuws:** [Iovance Biotherapeutics to Report Third Quarter 2026 Financial Results on Novemb](https://www.globenewswire.com/news-release/2026/10/27/3388814/0/en/iovance-biotherapeutics-to-report-third-quarter-2026-financial-results-and-corporate-updates-on-thursday-november-5-2026.html) · [H.C. Wainwright Maintains Buy Rating for Iovance Biotherapeutics](https://www.moomoo.com/hans/news/post/1002344149/hc-wainwright-maintains-iovance-biotherapeutics-iovaus-with-buy-rating-maintains) · [Iovance Biotherapeutics Reports Final Phase 2 Data for Lifileucel Combination in](https://markets.businessinsider.com/news/stocks/immuno-oncology-emerges-as-a-major-force-in-the-global-cancer-treatment-market-1036665454)
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/IOVA) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=IOVA) · [Finviz](https://finviz.com/quote.ashx?t=IOVA)
 
 ### OKTA
 **Okta, Inc. Class A Common Stock** — gekocht sinds 2026-10-26
 
-- **Waarom gekozen (regels):** trend OK, momentum 6-1 +165%, vol 81%
-- **Cijfers bij aankoop:** momentum 12-1m +127%, 3m +64%, volatiliteit 81%
+- **Waarom gekozen (regels):** trend OK, momentum 6-1 +169%, vol 81%
+- **Cijfers bij aankoop:** momentum 12-1m +128%, 3m +58%, volatiliteit 81%
+- **Recent nieuws:** [SSOJet Releases Open-Source Tool for Simulating Okta and Other Identity Provider](https://www.einpresswire.com/article/952514926/ssojet-releases-mock-idp-an-open-source-tool-that-simulates-okta-microsoft-entra-id-seven-other-identity-providers) · [QUICK SPARK: Cybersecurity Stocks Outperform Chipmakers in 2026](https://www.benzinga.com/etfs/sector-etfs/26/10/62627587/quick-spark-cybersecurity-stocks-outperform-chipmakers-2026)
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/OKTA) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=OKTA) · [Finviz](https://finviz.com/quote.ashx?t=OKTA)
 
 ## Laatste orders
