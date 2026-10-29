@@ -1,31 +1,31 @@
 # Investing Agent — portefeuille (paper)
 
-_Bijgewerkt 2026-10-28 21:05 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
+_Bijgewerkt 2026-10-29 12:34 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
 
-**Waarde:** $10,272.18 · **cash:** $7,857.35 · **terugval vanaf piek:** 0.0%
+**Waarde:** $9,669.35 · **cash:** $7,857.35 · **terugval vanaf piek:** 5.9%
 
 | Symbool | Bedrijf | Gewicht | Waarde | Aankoopprijs | Resultaat |
 |---|---|---:|---:|---:|---:|
-| [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 13.8% | $1,419 | $14.07 | +17.8% ($+214) |
-| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 9.7% | $996 | $215.75 | -0.8% ($-8) |
+| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 10.4% | $1,007 | $215.75 | +0.3% ($+3) |
+| [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 8.3% | $805 | $14.07 | -33.2% ($-399) |
 
 ## Details per positie
-
-### IOVA
-**Iovance Biotherapeutics, Inc. Common Stock** — gekocht sinds 2026-10-26
-
-- **Waarom gekozen (regels):** trend OK, momentum 6-1 +337%, vol 130%
-- **Cijfers bij aankoop:** momentum 12-1m +526%, 3m +215%, volatiliteit 130%
-- **Recent nieuws:** [Iovance Biotherapeutics to Report Third Quarter 2026 Financial Results on Novemb](https://www.globenewswire.com/news-release/2026/10/27/3388814/0/en/iovance-biotherapeutics-to-report-third-quarter-2026-financial-results-and-corporate-updates-on-thursday-november-5-2026.html) · [H.C. Wainwright Maintains Buy Rating for Iovance Biotherapeutics](https://www.moomoo.com/hans/news/post/1002344149/hc-wainwright-maintains-iovance-biotherapeutics-iovaus-with-buy-rating-maintains) · [Iovance Biotherapeutics Reports Final Phase 2 Data for Lifileucel Combination in](https://markets.businessinsider.com/news/stocks/immuno-oncology-emerges-as-a-major-force-in-the-global-cancer-treatment-market-1036665454)
-- **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/IOVA) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=IOVA) · [Finviz](https://finviz.com/quote.ashx?t=IOVA)
 
 ### OKTA
 **Okta, Inc. Class A Common Stock** — gekocht sinds 2026-10-26
 
-- **Waarom gekozen (regels):** trend OK, momentum 6-1 +169%, vol 81%
-- **Cijfers bij aankoop:** momentum 12-1m +128%, 3m +58%, volatiliteit 81%
-- **Recent nieuws:** [SSOJet Releases Open-Source Tool for Simulating Okta and Other Identity Provider](https://www.einpresswire.com/article/952514926/ssojet-releases-mock-idp-an-open-source-tool-that-simulates-okta-microsoft-entra-id-seven-other-identity-providers) · [QUICK SPARK: Cybersecurity Stocks Outperform Chipmakers in 2026](https://www.benzinga.com/etfs/sector-etfs/26/10/62627587/quick-spark-cybersecurity-stocks-outperform-chipmakers-2026)
+- **Waarom gekozen (regels):** trend OK, momentum 6-1 +184%, vol 82%
+- **Cijfers bij aankoop:** momentum 12-1m +134%, 3m +53%, volatiliteit 82%
+- **Recent nieuws:** [Cybersecurity Stocks Drop After Hours: Here's Why](https://www.benzinga.com/trading-ideas/movers/26/10/62679877/cybersecurity-stocks-drop-after-hours-heres-why) · [SSOJet Releases Open-Source Tool for Simulating Okta and Other Identity Provider](https://www.einpresswire.com/article/952514926/ssojet-releases-mock-idp-an-open-source-tool-that-simulates-okta-microsoft-entra-id-seven-other-identity-providers) · [QUICK SPARK: Cybersecurity Stocks Outperform Chipmakers in 2026](https://www.benzinga.com/etfs/sector-etfs/26/10/62627587/quick-spark-cybersecurity-stocks-outperform-chipmakers-2026)
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/OKTA) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=OKTA) · [Finviz](https://finviz.com/quote.ashx?t=OKTA)
+
+### IOVA
+**Iovance Biotherapeutics, Inc. Common Stock** — gekocht sinds 2026-10-26
+
+- **Waarom gekozen (regels):** trend OK, momentum 6-1 +341%, vol 146%
+- **Cijfers bij aankoop:** momentum 12-1m +577%, 3m +133%, volatiliteit 146%
+- **Recent nieuws:** [Iovance Biotherapeutics Reports Updated IOV-LUN-202 Results and Adds Precision T](https://www.globenewswire.com/news-release/2026/10/29/3391108/0/en/iovance-reports-updated-iov-lun-202-results-and-adds-precision-til-strategy-for-second-line-metastatic-non-small-cell-lung-cancer-mnsclc.html) · [12 Health Care Stocks Moving In Thursday's Pre-Market Session](https://www.benzinga.com/trading-ideas/movers/26/10/62691455/12-health-care-stocks-moving-thursday-s-pre-market-session) · [Iovance Biotherapeutics to Host Webcast on Positive Data for TIL Therapy in Meta](https://www.biospace.com/press-releases/iovance-biotherapeutics-to-host-webcast-on-positive-data-for-til-therapy-in-metastatic-non-small-cell-lung-cancer-mnsclc-and-broader-precision-medicine-strategy)
+- **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/IOVA) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=IOVA) · [Finviz](https://finviz.com/quote.ashx?t=IOVA)
 
 ## Laatste orders
 
