@@ -1,12 +1,12 @@
 # Investing Agent — portefeuille (paper)
 
-_Bijgewerkt 2026-10-30 16:56 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
+_Bijgewerkt 2026-10-30 20:14 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
 
-**Waarde:** $9,546.59 · **cash:** $7,857.35 · **terugval vanaf piek:** 7.1%
+**Waarde:** $9,572.25 · **cash:** $7,857.35 · **terugval vanaf piek:** 6.8%
 
 | Symbool | Bedrijf | Gewicht | Waarde | Aankoopprijs | Resultaat |
 |---|---|---:|---:|---:|---:|
-| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 10.1% | $966 | $215.75 | -3.8% ($-38) |
+| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 10.4% | $991 | $215.75 | -1.3% ($-13) |
 | [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 7.6% | $724 | $14.07 | -39.9% ($-481) |
 
 ## Details per positie
