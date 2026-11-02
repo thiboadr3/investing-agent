@@ -1,29 +1,29 @@
 # Investing Agent — portefeuille (paper)
 
-_Bijgewerkt 2026-10-30 20:14 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
+_Bijgewerkt 2026-11-02 14:55 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
 
-**Waarde:** $9,572.25 · **cash:** $7,857.35 · **terugval vanaf piek:** 6.8%
+**Waarde:** $9,429.31 · **cash:** $7,857.35 · **terugval vanaf piek:** 8.2%
 
 | Symbool | Bedrijf | Gewicht | Waarde | Aankoopprijs | Resultaat |
 |---|---|---:|---:|---:|---:|
-| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 10.4% | $991 | $215.75 | -1.3% ($-13) |
-| [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 7.6% | $724 | $14.07 | -39.9% ($-481) |
+| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 9.4% | $884 | $215.75 | -12.0% ($-120) |
+| [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 7.3% | $688 | $14.07 | -42.9% ($-517) |
 
 ## Details per positie
 
 ### OKTA
 **Okta, Inc. Class A Common Stock** — gekocht sinds 2026-10-26
 
-- **Waarom gekozen (regels):** trend OK, momentum 6-1 +181%, vol 83%
-- **Cijfers bij aankoop:** momentum 12-1m +143%, 3m +44%, volatiliteit 83%
-- **Recent nieuws:** [Live On CNBC, Josh Brown Hosts Segment Titled "Josh's Best Stocks In The Market:](https://www.benzinga.com/quote/OKTA) · [Cybersecurity Stocks Drop After Hours: Here's Why](https://www.benzinga.com/trading-ideas/movers/26/10/62679877/cybersecurity-stocks-drop-after-hours-heres-why) · [SSOJet Releases Open-Source Tool for Simulating Okta and Other Identity Provider](https://www.einpresswire.com/article/952514926/ssojet-releases-mock-idp-an-open-source-tool-that-simulates-okta-microsoft-entra-id-seven-other-identity-providers)
+- **Waarom gekozen (regels):** trend OK, momentum 6-1 +174%, vol 84%
+- **Cijfers bij aankoop:** momentum 12-1m +141%, 3m +28%, volatiliteit 84%
+- **Recent nieuws:** [Okta Announces Third Quarter Fiscal Year 2027 Earnings Release Date](https://www.businesswire.com/newsroom/subject/earnings) · [Okta to Join S&P 500 Index](https://www.prnewswire.com/news-releases/okta-set-to-join-sp-500-others-to-join-sp-midcap-400-and-sp-smallcap-600-302925405.html) · [Okta Set To Join The S&P 500](https://www.benzinga.com/news/26/10/62760817/okta-set-join-s-p-500)
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/OKTA) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=OKTA) · [Finviz](https://finviz.com/quote.ashx?t=OKTA)
 
 ### IOVA
 **Iovance Biotherapeutics, Inc. Common Stock** — gekocht sinds 2026-10-26
 
-- **Waarom gekozen (regels):** trend OK, momentum 6-1 +319%, vol 147%
-- **Cijfers bij aankoop:** momentum 12-1m +612%, 3m +99%, volatiliteit 147%
+- **Waarom gekozen (regels):** trend OK, momentum 6-1 +269%, vol 147%
+- **Cijfers bij aankoop:** momentum 12-1m +629%, 3m +84%, volatiliteit 147%
 - **Recent nieuws:** [Crude Oil Moves Lower; Caterpillar Shares Fall Following Q3 Results](https://www.benzinga.com/markets/market-summary/26/10/62712256/crude-oil-moves-lower-caterpillar-shares-fall-following-q3-results) · [12 Health Care Stocks Moving In Thursday's Intraday Session](https://www.benzinga.com/trading-ideas/movers/26/10/62708709/12-health-care-stocks-moving-thursday-s-intraday-session) · [Iovance Biotherapeutics Reports Updated IOV-LUN-202 Results and Adds Precision T](https://www.globenewswire.com/news-release/2026/10/29/3391108/0/en/iovance-reports-updated-iov-lun-202-results-and-adds-precision-til-strategy-for-second-line-metastatic-non-small-cell-lung-cancer-mnsclc.html)
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/IOVA) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=IOVA) · [Finviz](https://finviz.com/quote.ashx?t=IOVA)
 
