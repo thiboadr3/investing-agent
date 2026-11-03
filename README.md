@@ -1,23 +1,14 @@
 # Investing Agent — portefeuille (paper)
 
-_Bijgewerkt 2026-11-03 12:29 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
+_Bijgewerkt 2026-11-03 17:25 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
 
-**Waarde:** $9,472.22 · **cash:** $7,857.35 · **terugval vanaf piek:** 7.8%
+**Waarde:** $9,490.78 · **cash:** $8,730.67 · **terugval vanaf piek:** 7.6%
 
 | Symbool | Bedrijf | Gewicht | Waarde | Aankoopprijs | Resultaat |
 |---|---|---:|---:|---:|---:|
-| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 9.2% | $875 | $215.75 | -12.9% ($-129) |
-| [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 7.8% | $740 | $14.07 | -38.6% ($-465) |
+| [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 8.0% | $760 | $14.07 | -36.9% ($-445) |
 
 ## Details per positie
-
-### OKTA
-**Okta, Inc. Class A Common Stock** — gekocht sinds 2026-10-26
-
-- **Waarom gekozen (regels):** trend OK, momentum 6-1 +174%, vol 84%
-- **Cijfers bij aankoop:** momentum 12-1m +141%, 3m +28%, volatiliteit 84%
-- **Recent nieuws:** [Okta Announces Third Quarter Fiscal Year 2027 Earnings Release Date](https://www.businesswire.com/newsroom/subject/earnings) · [Okta to Join S&P 500 Index](https://www.prnewswire.com/news-releases/okta-set-to-join-sp-500-others-to-join-sp-midcap-400-and-sp-smallcap-600-302925405.html) · [Okta Set To Join The S&P 500](https://www.benzinga.com/news/26/10/62760817/okta-set-join-s-p-500)
-- **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/OKTA) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=OKTA) · [Finviz](https://finviz.com/quote.ashx?t=OKTA)
 
 ### IOVA
 **Iovance Biotherapeutics, Inc. Common Stock** — gekocht sinds 2026-10-26
@@ -31,7 +22,7 @@ _Bijgewerkt 2026-11-03 12:29 New York-tijd. Paperrekening, geen echt geld. Geen 
 
 | Tijd (UTC) | Actie | Symbool | Bedrag | Status | Reden |
 |---|---|---|---:|---|---|
-| 2026-11-03T17:28 | verkoop | OKTA | $874 | submitted | regels |
+| 2026-11-03T17:28 | verkoop | OKTA | $874 | filled | regels |
 | 2026-10-27T15:38 | verkoop | AAPL | $998 | filled | regels |
 | 2026-10-27T15:38 | verkoop | CRWD | $1,447 | filled | regels |
 | 2026-10-27T15:38 | verkoop | CVX | $991 | filled | regels |
