@@ -1,13 +1,13 @@
 # Investing Agent — portefeuille (paper)
 
-_Bijgewerkt 2026-11-02 20:55 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
+_Bijgewerkt 2026-11-03 12:29 New York-tijd. Paperrekening, geen echt geld. Geen beleggingsadvies._
 
-**Waarde:** $9,403.27 · **cash:** $7,857.35 · **terugval vanaf piek:** 8.5%
+**Waarde:** $9,472.22 · **cash:** $7,857.35 · **terugval vanaf piek:** 7.8%
 
 | Symbool | Bedrijf | Gewicht | Waarde | Aankoopprijs | Resultaat |
 |---|---|---:|---:|---:|---:|
-| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 9.1% | $860 | $215.75 | -14.3% ($-144) |
-| [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 7.3% | $686 | $14.07 | -43.1% ($-519) |
+| [OKTA](#okta) | Okta, Inc. Class A Common Stock | 9.2% | $875 | $215.75 | -12.9% ($-129) |
+| [IOVA](#iova) | Iovance Biotherapeutics, Inc. Common Stock | 7.8% | $740 | $14.07 | -38.6% ($-465) |
 
 ## Details per positie
 
@@ -22,15 +22,16 @@ _Bijgewerkt 2026-11-02 20:55 New York-tijd. Paperrekening, geen echt geld. Geen 
 ### IOVA
 **Iovance Biotherapeutics, Inc. Common Stock** — gekocht sinds 2026-10-26
 
-- **Waarom gekozen (regels):** trend OK, momentum 6-1 +269%, vol 147%
-- **Cijfers bij aankoop:** momentum 12-1m +629%, 3m +84%, volatiliteit 147%
-- **Recent nieuws:** [Crude Oil Moves Lower; Caterpillar Shares Fall Following Q3 Results](https://www.benzinga.com/markets/market-summary/26/10/62712256/crude-oil-moves-lower-caterpillar-shares-fall-following-q3-results) · [12 Health Care Stocks Moving In Thursday's Intraday Session](https://www.benzinga.com/trading-ideas/movers/26/10/62708709/12-health-care-stocks-moving-thursday-s-intraday-session) · [Iovance Biotherapeutics Reports Updated IOV-LUN-202 Results and Adds Precision T](https://www.globenewswire.com/news-release/2026/10/29/3391108/0/en/iovance-reports-updated-iov-lun-202-results-and-adds-precision-til-strategy-for-second-line-metastatic-non-small-cell-lung-cancer-mnsclc.html)
+- **Waarom gekozen (regels):** trend OK, momentum 6-1 +256%, vol 148%
+- **Cijfers bij aankoop:** momentum 12-1m +618%, 3m +99%, volatiliteit 148%
+- **Recent nieuws:** [UBS Maintains Neutral on Iovance Biotherapeutics, Raises Price Target to $8](https://www.benzinga.com/news/26/11/62828300/ubs-maintains-neutral-iovance-biotherapeutics-raises-price-target-8) · [Crude Oil Moves Lower; Caterpillar Shares Fall Following Q3 Results](https://www.benzinga.com/markets/market-summary/26/10/62712256/crude-oil-moves-lower-caterpillar-shares-fall-following-q3-results) · [12 Health Care Stocks Moving In Thursday's Intraday Session](https://www.benzinga.com/trading-ideas/movers/26/10/62708709/12-health-care-stocks-moving-thursday-s-intraday-session)
 - **Zelf verdiepen:** [Yahoo Finance](https://finance.yahoo.com/quote/IOVA) · [SEC-rapporten](https://www.sec.gov/edgar/search/#/entityName=IOVA) · [Finviz](https://finviz.com/quote.ashx?t=IOVA)
 
 ## Laatste orders
 
 | Tijd (UTC) | Actie | Symbool | Bedrag | Status | Reden |
 |---|---|---|---:|---|---|
+| 2026-11-03T17:28 | verkoop | OKTA | $874 | submitted | regels |
 | 2026-10-27T15:38 | verkoop | AAPL | $998 | filled | regels |
 | 2026-10-27T15:38 | verkoop | CRWD | $1,447 | filled | regels |
 | 2026-10-27T15:38 | verkoop | CVX | $991 | filled | regels |
@@ -50,4 +51,3 @@ _Bijgewerkt 2026-11-02 20:55 New York-tijd. Paperrekening, geen echt geld. Geen 
 | 2026-10-26T13:44 | verkoop | KO | $988 | filled | regels+ai |
 | 2026-10-23T14:31 | koop | CVX | $1,000 | filled | regels+ai |
 | 2026-10-23T14:31 | koop | JNJ | $1,000 | filled | regels+ai |
-| 2026-10-23T14:31 | koop | KO | $1,000 | filled | regels+ai |
