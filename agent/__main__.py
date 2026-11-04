@@ -341,9 +341,19 @@ class Agent:
                           for s in pos if s not in final_w and s not in sells
                           and not config.is_crypto(s)]
             except Exception as e:
-                ai_ok, final_w = False, dict(rule_w)
-                self.db.event("ERROR", "AI-keuze mislukt: vandaag enkel verkopen volgens regels",
-                              str(e))
+                # AI weg -> NIETS forceren: huidige aandelen houden zoals ze zijn (de regels
+                # kozen andere aandelen; zonder AI zou dat alles uitverkopen). Enkel ETF's/
+                # niet-toegelaten posities gaan eruit.
+                ai_ok = False
+                final_w = {s: round(p.market_value / acct.equity, 4) for s, p in pos.items()
+                           if acct.equity and s in short and not config.is_crypto(s)}
+                msg = str(e)
+                hint = (" — AI-tegoed op: vul aan in Google AI Studio"
+                        if "402" in msg or "credits" in msg.lower() else "")
+                self.db.event("ERROR", f"AI-keuze mislukt: posities blijven ongewijzigd{hint}", msg)
+                self.notify.send(f"⚠️ <b>AI-keuze mislukt</b>{esc(hint)}. Vandaag geen wissels; "
+                                 f"posities blijven zoals ze zijn.\n<code>{esc(msg[:200])}</code>",
+                                 key=f"aifail_{cycle_id}")
         elif strat.get("ai_filter", True) and rule_w:   # oude modus: AI mag enkel verkleinen
             try:
                 raw = self._ai_call(ai.filter_prompt(snaps, rule_w, news, lessons), "filter+debat")
@@ -397,7 +407,7 @@ class Agent:
         who = "AI-keuze" if pick_mode else "AI-filter"
         lines = [f"📋 <b>Plan {cycle_id[6:]}-{cycle_id[4:6]}</b> · {len(final_w)} posities, "
                  f"{sum(final_w.values()):.0%} belegd · {who} "
-                 f"{'OK' if ai_ok else 'MISLUKT (vandaag enkel verkopen)'}",
+                 f"{'OK' if ai_ok else ('MISLUKT (posities ongewijzigd)' if pick_mode else 'MISLUKT (vandaag enkel verkopen)')}",
                  ", ".join(f"{esc(s)} {w:.0%}" for s, w in top)]
         if pick_mode and ai_ok:
             if view:

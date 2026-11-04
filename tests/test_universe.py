@@ -59,6 +59,7 @@ def test_shortlist_includes_held():
     snaps = {s.symbol: s for s in [snap("A", 0.9, 0.1), snap("B", 0.2, 0.8),
                                    snap("SPY", 0.5, 0.9), snap("H", -0.1, -0.2),
                                    snap("QQQ", 0.1, 0.1)]}
-    snaps["H"].name = "Held Corp"          # gewoon aandeel; QQQ heeft geen naam (ETF)
+    for k in ("A", "B", "H"):              # gewone aandelen; QQQ/SPY hebben geen naam (ETF)
+        snaps[k].name = f"{k} Corp"
     out = rules.shortlist(snaps, 1, {"score": "mom6"}, {"H", "QQQ"}, "SPY")
     assert out == ["B", "H"]

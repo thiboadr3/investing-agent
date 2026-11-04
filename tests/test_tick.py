@@ -147,3 +147,37 @@ def test_weekly_review_stores_lessons(tmp_path, monkeypatch):
     assert [x for (x,) in a.db.x("SELECT lesson FROM lessons")] == ["Les 1", "Les 2"] * 2
     md = (tmp_path / "reports" / "WEEKLY.md").read_text()
     assert md.startswith("# Investing Agent — weekevaluaties") and md.count("## Week") == 2
+
+
+def test_pick_mode_ai_failure_keeps_positions(tmp_path):
+    """AI weg (bv. tegoed op) -> geen uitverkoop: huidige aandelen blijven, ETF's gaan eruit."""
+    from agent.broker import Account
+    from agent.data import Snapshot
+    a = m.Agent.__new__(m.Agent)
+    a.cfg = config.load()
+    a.cfg.shadows["enabled"] = False
+    a.db = DB(tmp_path / "p.db")
+    sent = []
+    a.notify = SimpleNamespace(send=lambda text, key=None: sent.append(text))
+    now = datetime.now(timezone.utc)
+
+    def snap(sym, m6, name="X Corp"):
+        s = Snapshot(sym, 10, now, 0, 0, 0, True, 0.3, m6, mom_6_1=m6)
+        s.name = name
+        return s
+    snaps = {s.symbol: s for s in [snap("HOT1", 2.0), snap("HOT2", 1.9), snap("HELD", 0.2),
+                                   snap("QQQ", 0.3, name=""), snap("SPY", 0.1, name="")]}
+    pos = {"HELD": SimpleNamespace(market_value=4000, unrealized_plpc=0.1),
+           "QQQ": SimpleNamespace(market_value=1000, unrealized_plpc=0.0)}
+    a.snapshot = lambda: (Account(10000, 5000, 10000, 10000), pos, None)
+    a.market_snaps = lambda held: snaps
+    a.data = SimpleNamespace(news=lambda *x, **k: [])
+    a.store_news = lambda n: None
+
+    def boom(*x, **k):
+        raise RuntimeError("402 RESOURCE_EXHAUSTED credits depleted")
+    a._ai_call = boom
+    plan = a.build_plan()
+    assert plan["ai_ok"] is False
+    assert plan["weights"] == {"HELD": 0.4}          # HELD blijft, QQQ (ETF) eruit, geen HOT-koop
+    assert any("AI-tegoed op" in t for t in sent)
